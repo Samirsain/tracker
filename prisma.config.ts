@@ -6,14 +6,12 @@ import { defineConfig } from "prisma/config";
 // here lets client generation succeed regardless; commands that actually hit
 // the database (`db push`, `db seed`) still require a real DATABASE_URL and
 // will fail with a clear connection error if it's missing.
-const databaseUrl = process.env.DATABASE_URL ?? "postgresql://placeholder:placeholder@localhost:5432/placeholder";
-const directUrl = process.env.DIRECT_URL ?? databaseUrl;
+const databaseUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? "postgresql://placeholder:placeholder@localhost:5432/placeholder";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
     url: databaseUrl,
-    directUrl: directUrl,
   },
   migrations: {
     seed: "tsx prisma/seed.ts",
