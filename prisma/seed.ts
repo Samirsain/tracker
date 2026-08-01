@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 
 import { calculateScore, DEFAULT_THRESHOLDS, DEFAULT_WEIGHTS } from "../src/lib/scoring";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg({ connectionString: process.env.DIRECT_URL ?? process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 const NICHES = [
