@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Auth ----------
+
+enum Role {
+  ADMIN
+  TEAM_MEMBER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(TEAM_MEMBER)
+
+  accounts       Account[]
+  sessions       Session[]
+  createdCreators Creator[]      @relation("CreatorCreatedBy")
+  scores          Score[]        @relation("ScoreScoredBy")
+  communications  Communication[] @relation("CommunicationCreatedBy")
+  notes           Note[]         @relation("NoteCreatedBy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- Enums ----------
+
+enum Platform {
+  INSTAGRAM
+  YOUTUBE
+  TIKTOK
+  FACEBOOK
+  TWITTER
+  LINKEDIN
+  OTHER
+}
+
+enum Niche {
+  FITNESS
+  DOCTOR
+  NUTRITIONIST
+  ATHLETE
+  LIFESTYLE
+  BEAUTY
+  COMEDY
+  FINANCE
+  TECHNOLOGY
+  FOOD
+  FASHION
+  OTHER
+}
+
+enum RelationshipStage {
+  PROSPECT
+  CONTACTED
+  INTERESTED
+  NEGOTIATING
+  GIFT_SENT
+  BARTER
+  AFFILIATE
+  PAID_STORY
+  PAID_REEL
+  AMBASSADOR
+  INACTIVE
+}
+
+enum CreatorStatus {
+  ACTIVE
+  PAUSED
+  BLACKLISTED
+}
+
+enum CommunicationType {
+  WHATSAPP
+  EMAIL
+  CALL
+  MEETING
+  INSTAGRAM_DM
+}
+
+enum CampaignStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+// ---------- Core domain ----------
+
+model Creator {
+  id                 String   @id @default(cuid())
+  profileImage       String?
+  name               String
+  instagramUsername  String?
+  platform           Platform @default(INSTAGRAM)
+  niche              Niche    @default(OTHER)
+  location           String?
+  language           String?
+  gender             String?
+  email              String?
+  phone              String?
+  website            String?
+
+  // Audience
+  followers          Int    @default(0)
+  avgReelViews       Int    @default(0)
+  avgStoryViews      Int    @default(0)
+  avgLikes           Int    @default(0)
+  avgComments        Int    @default(0)
+  engagementRate     Float  @default(0)
+  audienceAgeRange   String?
+  audienceGenderSplit String?
+  audienceCountry    String?
+  audienceCity       String?
+
+  // Pricing
+  storyPrice         Float?
+  reelPrice          Float?
+  postPrice          Float?
+  youtubePrice       Float?
+  packagePrice       Float?
+  affiliateAvailable Boolean @default(false)
+  barterAvailable    Boolean @default(false)
+
+  // Internal / brand fit
+  managerNotes           String? @db.Text
+  previousCollaborations String? @db.Text
+  specialRequirements    String? @db.Text
+  contractAttached       Boolean @default(false)
+  mediaKitAttached       Boolean @default(false)
+
+  relationshipStage RelationshipStage @default(PROSPECT)
+  status            CreatorStatus     @default(ACTIVE)
+
+  // Latest computed score snapshot (denormalized for fast listing/sorting)
+  totalScore     Float   @default(0)
+  grade          String?
+  recommendation String?
+
+  scores         Score[]
+  campaigns      CampaignCreator[]
+  communications Communication[]
+  notes          Note[]
+
+  createdById String?
+  createdBy   User?   @relation("CreatorCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([niche])
+  @@index([relationshipStage])
+  @@index([status])
+  @@index([totalScore])
+}
+
+model Score {
+  id String @id @default(cuid())
+
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // Raw 1-10 inputs
+  audienceFit      Int
+  trustCredibility Int
+  contentQuality   Int
+  costEfficiency   Int
+  reach            Int
+
+  // Weighted outputs
+  audienceScore Float
+  trustScore    Float
+  contentScore  Float
+  costScore     Float
+  reachScore    Float
+  totalScore    Float
+
+  grade          String
+  recommendation String
+
+  scoredById String?
+  scoredBy   User?   @relation("ScoreScoredBy", fields: [scoredById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([creatorId])
+}
+
+model ScoringConfig {
+  id Int @id @default(1)
+
+  audienceWeight Float @default(3)
+  trustWeight    Float @default(2.5)
+  contentWeight  Float @default(2)
+  costWeight     Float @default(1.5)
+  reachWeight    Float @default(1)
+
+  thresholdAmbassador Float @default(90)
+  thresholdPaidReel   Float @default(80)
+  thresholdAffiliate  Float @default(70)
+  thresholdBarter     Float @default(60)
+
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id            String         @id @default(cuid())
+  name          String
+  brand         String
+  budget        Float          @default(0)
+  objective     String?
+  expectedReach Int?
+  expectedSales Int?
+  startDate     DateTime?
+  endDate       DateTime?
+  status        CampaignStatus @default(PLANNING)
+
+  views    Int   @default(0)
+  clicks   Int   @default(0)
+  sales    Int   @default(0)
+  revenue  Float @default(0)
+  cost     Float @default(0)
+
+  creators CampaignCreator[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CampaignCreator {
+  id String @id @default(cuid())
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([campaignId, creatorId])
+}
+
+model Communication {
+  id String @id @default(cuid())
+
+  creatorId String
+  creator   Creator           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  type      CommunicationType
+  notes     String?           @db.Text
+
+  nextFollowUpDate DateTime?
+
+  createdById String?
+  createdBy   User?   @relation("CommunicationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([creatorId])
+  @@index([nextFollowUpDate])
+}
+
+model Note {
+  id String @id @default(cuid())
+
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  content   String  @db.Text
+
+  createdById String?
+  createdBy   User?   @relation("NoteCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([creatorId])
+}
