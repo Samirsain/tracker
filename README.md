@@ -7,7 +7,7 @@ A Next.js 15 platform for marketing teams to discover, evaluate, score, and mana
 - **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS v4, hand-rolled shadcn/ui-style components (Radix UI primitives), Framer Motion, React Hook Form, Zod
 - **Backend**: Next.js Server Actions, Prisma ORM 7 (with the `@prisma/adapter-pg` driver adapter)
 - **Database**: PostgreSQL
-- **Auth**: NextAuth.js v5 — Google OAuth + email/password (Credentials provider)
+- **Auth**: NextAuth.js v5 — email/password (Credentials provider)
 - **Charts**: Recharts
 - **Icons**: Lucide React
 
@@ -22,7 +22,6 @@ A Next.js 15 platform for marketing teams to discover, evaluate, score, and mana
    - `DATABASE_URL` — a PostgreSQL connection string.
    - `AUTH_SECRET` — generate with `npx auth secret`.
    - `AUTH_TRUST_HOST=true` — required when self-hosting outside Vercel.
-   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — optional, only needed for Google login.
 
 2. Install dependencies and set up the database:
 
