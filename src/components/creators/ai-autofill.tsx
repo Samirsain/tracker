@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, Loader2, CheckCircle2, AlertCircle, User, Users, TrendingUp, MapPin } from "lucide-react";
+import { Sparkles, Loader2, CheckCircle2, AlertCircle, User, Users, TrendingUp, MapPin, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,22 @@ interface EnrichMeta {
   source?: "Instagram API" | "Instagram API + AI";
   /** AI-guessed fields (audience demographics etc.) — manager should verify. */
   estimatedFields?: string[];
+  creatorTypeReason?: string;
+  engagement?: {
+    sampledPosts: number;
+    excludedPinned: number;
+    from: string;
+    to: string;
+    windowDays: number;
+    avgLikes: number;
+    avgComments: number;
+    medianLikes: number;
+    medianComments: number;
+    erMean: number;
+    erMedian: number;
+    byType: { label: string; count: number; avgLikes: number }[];
+    caveats: string[];
+  };
 }
 
 interface EnrichResult {
@@ -29,6 +45,7 @@ interface EnrichResult {
   profileImage: string;
   platform: "INSTAGRAM";
   niche: CreatorInput["niche"];
+  creatorType: CreatorInput["creatorType"];
   location: string;
   website: string;
   followers: number;
@@ -236,6 +253,80 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
                 <MapPin className="h-3 w-3" />
                 {preview.location}
               </div>
+            )}
+
+            {/* The audit trail behind the engagement rate. An ER that looks too
+                low is usually a sampling question, so show the sample. */}
+            {preview._meta.engagement && preview._meta.engagement.sampledPosts > 0 && (
+              <div className="rounded-lg border border-border/60 bg-background/60 p-3 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium">
+                  <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
+                  How this engagement rate was measured
+                </div>
+
+                <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+                  <dt className="text-muted-foreground">Posts scanned</dt>
+                  <dd className="text-right font-medium">
+                    {preview._meta.engagement.sampledPosts}
+                    {preview._meta.engagement.excludedPinned > 0 &&
+                      ` (${preview._meta.engagement.excludedPinned} pinned skipped)`}
+                  </dd>
+
+                  <dt className="text-muted-foreground">Period</dt>
+                  <dd className="text-right font-medium">
+                    {preview._meta.engagement.from} → {preview._meta.engagement.to}
+                    {preview._meta.engagement.windowDays > 0 && ` · ${preview._meta.engagement.windowDays}d`}
+                  </dd>
+
+                  <dt className="text-muted-foreground">Avg likes / comments</dt>
+                  <dd className="text-right font-medium">
+                    {preview._meta.engagement.avgLikes.toLocaleString("en-US")} /{" "}
+                    {preview._meta.engagement.avgComments.toLocaleString("en-US")}
+                  </dd>
+
+                  <dt className="text-muted-foreground">Median post</dt>
+                  <dd className="text-right font-medium">
+                    {preview._meta.engagement.medianLikes.toLocaleString("en-US")} /{" "}
+                    {preview._meta.engagement.medianComments.toLocaleString("en-US")}
+                  </dd>
+
+                  <dt className="text-muted-foreground">ER mean / median</dt>
+                  <dd className="text-right font-semibold">
+                    {preview._meta.engagement.erMean}% / {preview._meta.engagement.erMedian}%
+                  </dd>
+                </dl>
+
+                {preview._meta.engagement.byType.length > 1 && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {preview._meta.engagement.byType
+                      .map((t) => `${t.label} ${t.count} · ${t.avgLikes.toLocaleString("en-US")} avg likes`)
+                      .join("  |  ")}
+                  </p>
+                )}
+
+                {preview._meta.engagement.caveats.map((caveat) => (
+                  <p
+                    key={caveat}
+                    className="flex items-start gap-1.5 rounded bg-amber-500/10 px-2 py-1.5 text-[11px] leading-relaxed text-amber-700 dark:text-amber-400"
+                  >
+                    <AlertCircle className="mt-px h-3 w-3 shrink-0" />
+                    {caveat}
+                  </p>
+                ))}
+
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  Rate = (avg likes + avg comments) ÷ followers. If the creator quotes a higher
+                  number, they are likely measuring against reach or views, not followers — reels
+                  travel well beyond the follower count.
+                </p>
+              </div>
+            )}
+
+            {preview._meta.creatorTypeReason && (
+              <p className="text-[11px] text-muted-foreground">
+                Creator type: <span className="font-medium text-foreground">{preview.creatorType}</span>{" "}
+                — {preview._meta.creatorTypeReason}
+              </p>
             )}
 
             {preview._meta.estimatedFields && preview._meta.estimatedFields.length > 0 && (

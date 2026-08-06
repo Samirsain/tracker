@@ -12,6 +12,7 @@ interface CreatorEnrichment {
   profileImage: string;
   platform: "INSTAGRAM";
   niche: string;
+  creatorType: string;
   language: string;
   gender: string;
   location: string;
@@ -37,7 +38,36 @@ interface CreatorEnrichment {
     sampledPosts: number;
     /** Fields the AI guessed from bio/captions — not measured facts. */
     estimatedFields: string[];
+    /** Why this creator type was assigned — the rule is deterministic. */
+    creatorTypeReason: string;
+    /** The full audit trail behind the engagement rate. */
+    engagement: EngagementReport;
   };
+}
+
+/**
+ * Everything the engagement rate was computed from. Surfaced so a number that
+ * looks wrong can be checked against the posts it came from, instead of being
+ * taken on faith.
+ */
+interface EngagementReport {
+  sampledPosts: number;
+  excludedPinned: number;
+  /** ISO dates of the oldest and newest post in the sample. */
+  from: string;
+  to: string;
+  windowDays: number;
+  avgLikes: number;
+  avgComments: number;
+  medianLikes: number;
+  medianComments: number;
+  /** Industry-standard rate: mean interactions / followers. Stored on the creator. */
+  erMean: number;
+  /** Median-based rate — closer to a typical post when one upload went viral. */
+  erMedian: number;
+  byType: { label: string; count: number; avgLikes: number }[];
+  /** Reasons to distrust the mean. Empty when the sample is clean. */
+  caveats: string[];
 }
 
 const RAPIDAPI_HOST = process.env.RAPIDAPI_INSTAGRAM_HOST || "instagram120.p.rapidapi.com";
@@ -122,17 +152,140 @@ function pickUser(payload: unknown): IgUser | null {
   return user && typeof user === "object" && user.username ? user : null;
 }
 
-/** Real averages from the creator's most recent posts. Zero if unavailable. */
-function averageEngagement(payload: unknown) {
-  const edges = (payload as { result?: { edges?: { node?: Record<string, unknown> }[] } })?.result?.edges;
-  if (!Array.isArray(edges) || edges.length === 0) return { avgLikes: 0, avgComments: 0, sampled: 0 };
+type PostNode = {
+  like_count?: number;
+  comment_count?: number;
+  product_type?: string;
+  media_type?: number;
+  timeline_pinned_user_ids?: unknown[];
+  caption?: { text?: string; created_at?: number };
+  taken_at?: number;
+};
 
-  const nodes = edges.map((e) => e?.node).filter(Boolean) as Record<string, unknown>[];
-  const likes = nodes.map((n) => Number(n.like_count)).filter((n) => Number.isFinite(n) && n >= 0);
-  const comments = nodes.map((n) => Number(n.comment_count)).filter((n) => Number.isFinite(n) && n >= 0);
+/** Instagram returns 12 posts per page; walk the cursor for a usable sample. */
+async function fetchPosts(username: string, pages = 3): Promise<PostNode[]> {
+  const nodes: PostNode[] = [];
+  let cursor = "";
 
-  const mean = (arr: number[]) => (arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0);
-  return { avgLikes: mean(likes), avgComments: mean(comments), sampled: nodes.length };
+  for (let page = 0; page < pages; page++) {
+    const payload = (await rapidApi("api/instagram/posts", { username, maxId: cursor })) as {
+      result?: { edges?: { node?: PostNode }[]; page_info?: { end_cursor?: string; has_next_page?: boolean } };
+    };
+    const edges = payload?.result?.edges;
+    if (!Array.isArray(edges) || edges.length === 0) break;
+
+    nodes.push(...(edges.map((e) => e?.node).filter(Boolean) as PostNode[]));
+
+    const info = payload.result?.page_info;
+    if (!info?.has_next_page || !info.end_cursor) break;
+    cursor = info.end_cursor;
+  }
+
+  return nodes;
+}
+
+const mean = (a: number[]) => (a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : 0);
+const median = (a: number[]) => {
+  if (!a.length) return 0;
+  const s = [...a].sort((x, y) => x - y);
+  const mid = Math.floor(s.length / 2);
+  return Math.round(s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2);
+};
+
+const PRODUCT_LABELS: Record<string, string> = {
+  clips: "Reels",
+  feed: "Photos",
+  carousel_container: "Carousels",
+  igtv: "Video",
+};
+
+function analyseEngagement(all: PostNode[], followers: number): EngagementReport | null {
+  // Pinned posts are the creator's chosen greatest hits and sit at the top of
+  // the grid forever. Averaging them in measures their best work, not their
+  // current performance.
+  const posts = all.filter((n) => !n.timeline_pinned_user_ids?.length);
+  const excludedPinned = all.length - posts.length;
+  if (posts.length === 0 || followers <= 0) return null;
+
+  const likes = posts.map((n) => Number(n.like_count)).filter((n) => Number.isFinite(n) && n >= 0);
+  const comments = posts.map((n) => Number(n.comment_count)).filter((n) => Number.isFinite(n) && n >= 0);
+  if (likes.length === 0) return null;
+
+  const times = posts
+    .map((n) => n.taken_at ?? n.caption?.created_at)
+    .filter((t): t is number => typeof t === "number" && t > 0)
+    .sort((a, b) => a - b);
+  const iso = (t?: number) => (t ? new Date(t * 1000).toISOString().slice(0, 10) : "");
+
+  const byType = Object.entries(
+    posts.reduce<Record<string, number[]>>((acc, n) => {
+      const label = PRODUCT_LABELS[n.product_type ?? ""] ?? "Other";
+      (acc[label] ??= []).push(Number(n.like_count) || 0);
+      return acc;
+    }, {})
+  )
+    .map(([label, l]) => ({ label, count: l.length, avgLikes: mean(l) }))
+    .sort((a, b) => b.count - a.count);
+
+  const rate = (l: number, c: number) => Number((((l + c) / followers) * 100).toFixed(2));
+  const windowDays = times.length > 1 ? Math.round((times[times.length - 1] - times[0]) / 86_400) : 0;
+  const erMean = rate(mean(likes), mean(comments));
+  const erMedian = rate(median(likes), median(comments));
+
+  const caveats: string[] = [];
+  if (windowDays > 365) {
+    caveats.push(
+      `Sample spans ${Math.round(windowDays / 30)} months because this account posts rarely. ` +
+        `Older posts were seen by a smaller follower base, so the rate runs high.`
+    );
+  }
+  if (erMedian > 0 && erMean > erMedian * 1.5) {
+    caveats.push(
+      `The mean is ${(erMean / erMedian).toFixed(1)}x the median — a few posts went viral and are ` +
+        `pulling the average up. A typical post performs closer to ${erMedian}%.`
+    );
+  }
+  if (posts.length < 12) {
+    caveats.push(`Only ${posts.length} posts were available, so this rate is not very stable.`);
+  }
+
+  return {
+    sampledPosts: posts.length,
+    excludedPinned,
+    from: iso(times[0]),
+    to: iso(times[times.length - 1]),
+    windowDays,
+    avgLikes: mean(likes),
+    avgComments: mean(comments),
+    medianLikes: median(likes),
+    medianComments: median(comments),
+    erMean,
+    erMedian,
+    byType,
+    caveats,
+  };
+}
+
+/**
+ * PRD creator type, derived from what the profile actually shows rather than
+ * defaulting everyone to LIFESTYLE. Substance first, then audience size.
+ */
+function detectCreatorType(niche: string, followers: number, bio: string, category: string) {
+  const text = `${bio} ${category}`;
+
+  if (["DOCTOR", "NUTRITIONIST"].includes(niche) || /\b(phd|researcher|scientist|clinical)\b/i.test(text)) {
+    return { type: "SCIENCE", reason: `${niche === "OTHER" ? "Bio" : "Niche"} indicates a clinical or research background` };
+  }
+  if (["ATHLETE", "FITNESS"].includes(niche) || /\b(marathon|triathlon|cyclist|runner|olympic)\b/i.test(text)) {
+    return { type: "PERFORMANCE", reason: "Sport or training-led content" };
+  }
+  if (followers >= 5_000_000) {
+    return { type: "CELEBRITY", reason: `${formatFollowers(followers)} followers — mass awareness reach` };
+  }
+  if (followers > 0 && followers < 100_000) {
+    return { type: "COMMUNITY", reason: `${formatFollowers(followers)} followers — nano/micro niche audience` };
+  }
+  return { type: "LIFESTYLE", reason: "General wellness / lifestyle content" };
 }
 
 function captionsFrom(payload: unknown, limit = 6): string[] {
@@ -257,7 +410,7 @@ export async function POST(req: NextRequest) {
   try {
     const [infoResult, postsResult] = await Promise.allSettled([
       rapidApi("api/instagram/userInfo", { username: clean }),
-      rapidApi("api/instagram/posts", { username: clean, maxId: "" }),
+      fetchPosts(clean),
     ]);
 
     if (infoResult.status === "rejected") throw infoResult.reason;
@@ -270,14 +423,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { avgLikes, avgComments, sampled } =
-      postsResult.status === "fulfilled"
-        ? averageEngagement(postsResult.value)
-        : { avgLikes: 0, avgComments: 0, sampled: 0 };
-
     const followers = Number(user.follower_count) || 0;
-    const engagementRate =
-      followers > 0 ? Number((((avgLikes + avgComments) / followers) * 100).toFixed(2)) : 0;
+    const posts = postsResult.status === "fulfilled" ? postsResult.value : [];
+    const engagement = analyseEngagement(posts, followers);
+
+    const avgLikes = engagement?.avgLikes ?? 0;
+    const avgComments = engagement?.avgComments ?? 0;
+    const engagementRate = engagement?.erMean ?? 0;
 
     const ai = await enrichWithAi({
       username: clean,
@@ -285,7 +437,7 @@ export async function POST(req: NextRequest) {
       bio: user.biography?.trim() || "",
       category: user.category?.trim() || "",
       followers,
-      captions: postsResult.status === "fulfilled" ? captionsFrom(postsResult.value) : [],
+      captions: captionsFrom(posts),
     });
 
     // AI only supplies soft fields. Real API values always win, and a blank AI
@@ -298,6 +450,13 @@ export async function POST(req: NextRequest) {
     const aiNiche = ai?.niche && VALID_NICHES.includes(ai.niche as (typeof VALID_NICHES)[number]) ? ai.niche : "";
     const niche = aiNiche || detectNiche(user.category, user.biography, user.full_name, clean);
 
+    const { type: creatorType, reason: creatorTypeReason } = detectCreatorType(
+      niche,
+      followers,
+      user.biography ?? "",
+      user.category ?? ""
+    );
+
     const data: CreatorEnrichment = {
       name: user.full_name?.trim() || clean,
       instagramUsername: `@${user.username || clean}`,
@@ -306,6 +465,7 @@ export async function POST(req: NextRequest) {
       profileImage: user.hd_profile_pic_url_info?.url || user.profile_pic_url || "",
       platform: "INSTAGRAM",
       niche,
+      creatorType,
       language: ai?.language?.trim() || "",
       gender: ai?.gender?.trim() || "",
       location: pick(ai?.location, user.city_name?.trim() || ""),
@@ -330,8 +490,24 @@ export async function POST(req: NextRequest) {
         detectedNiche: niche,
         detectedGender: ai?.gender?.trim() || "",
         source: ai ? "Instagram API + AI" : "Instagram API",
-        sampledPosts: sampled,
+        sampledPosts: engagement?.sampledPosts ?? 0,
         estimatedFields,
+        creatorTypeReason,
+        engagement: engagement ?? {
+          sampledPosts: 0,
+          excludedPinned: 0,
+          from: "",
+          to: "",
+          windowDays: 0,
+          avgLikes: 0,
+          avgComments: 0,
+          medianLikes: 0,
+          medianComments: 0,
+          erMean: 0,
+          erMedian: 0,
+          byType: [],
+          caveats: [],
+        },
       },
     };
 

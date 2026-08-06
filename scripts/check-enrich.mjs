@@ -70,26 +70,61 @@ async function askAi(profile) {
   return JSON.parse(j.choices[0].message.content);
 }
 
+/** Mirrors fetchPosts() in the route: walk the cursor for a real sample. */
+async function fetchPosts(username, pages = 3) {
+  const nodes = [];
+  let cursor = "";
+  for (let i = 0; i < pages; i++) {
+    const p = await call("api/instagram/posts", { username, maxId: cursor });
+    const edges = p?.result?.edges;
+    if (!Array.isArray(edges) || edges.length === 0) break;
+    nodes.push(...edges.map((e) => e.node));
+    if (!p.result.page_info?.has_next_page || !p.result.page_info.end_cursor) break;
+    cursor = p.result.page_info.end_cursor;
+  }
+  return nodes;
+}
+
+const median = (a) => {
+  if (!a.length) return 0;
+  const s = [...a].sort((x, y) => x - y);
+  const m = Math.floor(s.length / 2);
+  return Math.round(s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2);
+};
+
 const seen = [];
 const aiSeen = [];
 for (const username of ["mkbhd", "carryminati", "virat.kohli"]) {
-  const [info, posts] = await Promise.all([
+  const [info, all] = await Promise.all([
     call("api/instagram/userInfo", { username }),
-    call("api/instagram/posts", { username, maxId: "" }),
+    fetchPosts(username),
   ]);
 
   const user = info?.result?.[0]?.user;
   assert.ok(user?.username, `no user payload for @${username}`);
 
-  const nodes = (posts?.result?.edges || []).map((e) => e.node);
-  const avgLikes = mean(nodes.map((n) => Number(n.like_count)).filter(Number.isFinite));
-  const avgComments = mean(nodes.map((n) => Number(n.comment_count)).filter(Number.isFinite));
+  // A single page is 12 posts; anything less means pagination silently broke.
+  assert.ok(all.length > 12, `@${username}: pagination returned only ${all.length} posts`);
+  assert.strictEqual(new Set(all.map((n) => n.pk)).size, all.length, "duplicate posts across pages");
+
+  const nodes = all.filter((n) => !n.timeline_pinned_user_ids?.length);
+  const likeVals = nodes.map((n) => Number(n.like_count)).filter(Number.isFinite);
+  const cmtVals = nodes.map((n) => Number(n.comment_count)).filter(Number.isFinite);
+  const avgLikes = mean(likeVals);
+  const avgComments = mean(cmtVals);
   const followers = Number(user.follower_count) || 0;
-  const er = followers > 0 ? Number((((avgLikes + avgComments) / followers) * 100).toFixed(2)) : 0;
+  const rate = (l, c) => Number((((l + c) / followers) * 100).toFixed(2));
+  const er = followers > 0 ? rate(avgLikes, avgComments) : 0;
+  const erMedian = followers > 0 ? rate(median(likeVals), median(cmtVals)) : 0;
 
   assert.ok(followers > 0, `@${username}: follower_count missing`);
   assert.ok(avgLikes > 0, `@${username}: like_count missing from posts`);
-  console.log(`${username.padEnd(14)} ${String(followers).padEnd(11)} avgLikes=${String(avgLikes).padEnd(9)} ER=${er}%`);
+  assert.ok(er > 0 && er < 100, `@${username}: implausible engagement rate ${er}%`);
+
+  console.log(
+    `${username.padEnd(14)} ${String(followers).padEnd(11)} posts=${String(nodes.length).padEnd(3)} ` +
+      `avgLikes=${String(avgLikes).padEnd(9)} ER mean=${er}% median=${erMedian}%`
+  );
   seen.push(`${user.full_name}|${followers}|${avgLikes}|${er}`);
 
   const ai = await askAi({
