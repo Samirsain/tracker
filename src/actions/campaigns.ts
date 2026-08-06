@@ -8,10 +8,15 @@ import { prisma } from "@/lib/prisma";
 import { campaignSchema, type CampaignInput } from "@/lib/validations/campaign";
 
 export async function getCampaigns() {
-  return prisma.campaign.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { creators: { include: { creator: { select: { id: true, name: true, profileImage: true } } } } },
-  });
+  try {
+    return await prisma.campaign.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { creators: { include: { creator: { select: { id: true, name: true, profileImage: true } } } } },
+    });
+  } catch (error) {
+    console.error("Error in getCampaigns:", error);
+    return [];
+  }
 }
 
 export async function createCampaign(input: CampaignInput) {

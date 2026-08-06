@@ -99,11 +99,11 @@ export function CreatorTable({ creators, canDelete }: { creators: CreatorRow[]; 
                 <TableCell>
                   <Link href={`/creators/${creator.id}`} className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      {creator.profileImage && <AvatarImage src={creator.profileImage} alt={creator.name} />}
-                      <AvatarFallback className="text-xs">{initials(creator.name)}</AvatarFallback>
+                      {creator.profileImage && <AvatarImage src={creator.profileImage} alt={creator.name || "Creator"} />}
+                      <AvatarFallback className="text-xs">{initials(creator.name || "Creator")}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{creator.name}</p>
+                      <p className="truncate text-sm font-medium">{creator.name || "Unnamed Creator"}</p>
                       {creator.instagramUsername && (
                         <p className="truncate text-xs text-muted-foreground">@{creator.instagramUsername}</p>
                       )}
@@ -123,16 +123,16 @@ export function CreatorTable({ creators, canDelete }: { creators: CreatorRow[]; 
                     {labelFor(COLLABORATION_CATEGORY_OPTIONS, creator.collaborationCategory || "BARTER")}
                   </span>
                 </TableCell>
-                <TableCell className="text-sm tabular-nums">{formatCompactNumber(creator.followers)}</TableCell>
-                <TableCell className="text-sm tabular-nums">{creator.engagementRate.toFixed(1)}%</TableCell>
+                <TableCell className="text-sm tabular-nums">{formatCompactNumber(creator.followers ?? 0)}</TableCell>
+                <TableCell className="text-sm tabular-nums">{(creator.engagementRate ?? 0).toFixed(1)}%</TableCell>
                 <TableCell>
-                  <ScoreBadge score={creator.totalScore} />
+                  <ScoreBadge score={creator.totalScore ?? 0} />
                 </TableCell>
                 <TableCell>
-                  <RelationshipStageBadge stage={creator.relationshipStage} />
+                  <RelationshipStageBadge stage={creator.relationshipStage || "PROSPECT"} />
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={creator.status} />
+                  <StatusBadge status={creator.status || "ACTIVE"} />
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>

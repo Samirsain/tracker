@@ -23,50 +23,60 @@ export type CreatorFilters = {
 };
 
 export async function getCreators(filters: CreatorFilters = {}) {
-  const where: Prisma.CreatorWhereInput = {};
+  try {
+    const where: Prisma.CreatorWhereInput = {};
 
-  if (filters.search) {
-    where.OR = [
-      { name: { contains: filters.search, mode: "insensitive" } },
-      { instagramUsername: { contains: filters.search, mode: "insensitive" } },
-      { email: { contains: filters.search, mode: "insensitive" } },
-      { phone: { contains: filters.search, mode: "insensitive" } },
-    ];
-  }
-  if (filters.niche) where.niche = filters.niche as Niche;
-  if (filters.creatorType) (where as Record<string, unknown>).creatorType = filters.creatorType;
-  if (filters.collaborationCategory) (where as Record<string, unknown>).collaborationCategory = filters.collaborationCategory;
-  if (filters.platform) where.platform = filters.platform as Platform;
-  if (filters.relationshipStage) where.relationshipStage = filters.relationshipStage as RelationshipStage;
-  if (filters.status) where.status = filters.status as CreatorStatus;
-  if (filters.recommendation) where.recommendation = filters.recommendation;
-  if (filters.minFollowers) where.followers = { gte: filters.minFollowers };
-  if (filters.minScore || filters.maxScore) {
-    where.totalScore = {
-      ...(filters.minScore ? { gte: filters.minScore } : {}),
-      ...(filters.maxScore ? { lte: filters.maxScore } : {}),
-    };
-  }
+    if (filters.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: "insensitive" } },
+        { instagramUsername: { contains: filters.search, mode: "insensitive" } },
+        { email: { contains: filters.search, mode: "insensitive" } },
+        { phone: { contains: filters.search, mode: "insensitive" } },
+      ];
+    }
+    if (filters.niche) where.niche = filters.niche as Niche;
+    if (filters.creatorType) (where as Record<string, unknown>).creatorType = filters.creatorType;
+    if (filters.collaborationCategory) (where as Record<string, unknown>).collaborationCategory = filters.collaborationCategory;
+    if (filters.platform) where.platform = filters.platform as Platform;
+    if (filters.relationshipStage) where.relationshipStage = filters.relationshipStage as RelationshipStage;
+    if (filters.status) where.status = filters.status as CreatorStatus;
+    if (filters.recommendation) where.recommendation = filters.recommendation;
+    if (filters.minFollowers) where.followers = { gte: filters.minFollowers };
+    if (filters.minScore || filters.maxScore) {
+      where.totalScore = {
+        ...(filters.minScore ? { gte: filters.minScore } : {}),
+        ...(filters.maxScore ? { lte: filters.maxScore } : {}),
+      };
+    }
 
-  return prisma.creator.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-  });
+    return await prisma.creator.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Error in getCreators:", error);
+    return [];
+  }
 }
 
 export async function getCreator(id: string) {
-  return prisma.creator.findUnique({
-    where: { id },
-    include: {
-      scores: { orderBy: { createdAt: "desc" }, include: { scoredBy: { select: { name: true } } } },
-      communications: {
-        orderBy: { createdAt: "desc" },
-        include: { createdBy: { select: { name: true } } },
+  try {
+    return await prisma.creator.findUnique({
+      where: { id },
+      include: {
+        scores: { orderBy: { createdAt: "desc" }, include: { scoredBy: { select: { name: true } } } },
+        communications: {
+          orderBy: { createdAt: "desc" },
+          include: { createdBy: { select: { name: true } } },
+        },
+        notes: { orderBy: { createdAt: "desc" }, include: { createdBy: { select: { name: true } } },
+        campaigns: { include: { campaign: true } },
       },
-      notes: { orderBy: { createdAt: "desc" }, include: { createdBy: { select: { name: true } } } },
-      campaigns: { include: { campaign: true } },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Error in getCreator:", error);
+    return null;
+  }
 }
 
 export async function createCreator(input: CreatorInput) {

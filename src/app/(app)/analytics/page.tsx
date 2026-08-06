@@ -41,39 +41,39 @@ export default async function AnalyticsPage() {
       <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
         <Leaderboard
           title="Highest Engagement"
-          items={performers.highestEngagement.map((c) => ({
+          items={performers?.highestEngagement?.map((c) => ({
             id: c.id,
             name: c.name,
             profileImage: c.profileImage,
-            value: `${c.engagementRate.toFixed(1)}%`,
-          }))}
+            value: `${(c.engagementRate ?? 0).toFixed(1)}%`,
+          })) ?? []}
         />
         <Leaderboard
           title="Lowest Cost (Reel)"
-          items={performers.lowestCost.map((c) => ({
+          items={performers?.lowestCost?.map((c) => ({
             id: c.id,
             name: c.name,
             profileImage: c.profileImage,
             value: formatCurrency(c.reelPrice),
-          }))}
+          })) ?? []}
         />
         <Leaderboard
           title="Highest Score"
-          items={performers.highestRoi.map((c) => ({
+          items={performers?.highestRoi?.map((c) => ({
             id: c.id,
             name: c.name,
             profileImage: c.profileImage,
-            value: Math.round(c.totalScore).toString(),
-          }))}
+            value: Math.round(c.totalScore ?? 0).toString(),
+          })) ?? []}
         />
         <Leaderboard
           title="Best Audience Fit"
-          items={performers.bestAudienceFit.map((s) => ({
-            id: s.creator.id,
-            name: s.creator.name,
-            profileImage: s.creator.profileImage,
-            value: `${s.audienceFit}/10`,
-          }))}
+          items={performers?.bestAudienceFit?.map((s) => ({
+            id: s.creator?.id || "unknown",
+            name: s.creator?.name || "Unknown",
+            profileImage: s.creator?.profileImage || null,
+            value: `${s.audienceFit ?? 0}/10`,
+          })) ?? []}
         />
       </div>
 
