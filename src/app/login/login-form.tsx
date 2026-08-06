@@ -59,10 +59,6 @@ export function LoginForm() {
           Sign in
         </Button>
       </form>
-
-      <p className="text-center text-xs text-muted-foreground">
-        Demo accounts — Username: <strong>Admin12</strong> · Password: <strong>ad@1234</strong>
-      </p>
     </div>
   );
 }
