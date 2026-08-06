@@ -74,13 +74,24 @@ function randomInt(min: number, max: number) {
 async function main() {
   console.log("Seeding database...");
 
-  const passwordHash = await bcrypt.hash("password123", 10);
+  const passwordHash = await bcrypt.hash("ad@1234", 10);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@creatorscore.app" },
-    update: { name: "Samir Sain" },
+    where: { email: "admin12@creatorscore.app" },
+    update: { name: "Samir Sain", password: passwordHash },
     create: {
       name: "Samir Sain",
+      email: "admin12@creatorscore.app",
+      password: passwordHash,
+      role: "ADMIN",
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "admin@creatorscore.app" },
+    update: { password: passwordHash },
+    create: {
+      name: "Samir Sain Admin",
       email: "admin@creatorscore.app",
       password: passwordHash,
       role: "ADMIN",
@@ -89,7 +100,7 @@ async function main() {
 
   const teamMember = await prisma.user.upsert({
     where: { email: "team@creatorscore.app" },
-    update: {},
+    update: { password: passwordHash },
     create: {
       name: "Jamie Lee",
       email: "team@creatorscore.app",

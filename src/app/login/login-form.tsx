@@ -45,8 +45,8 @@ export function LoginForm() {
     <div className="space-y-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="you@company.com" {...register("email")} />
+          <Label htmlFor="email">Email or Username</Label>
+          <Input id="email" type="text" placeholder="Admin12 or admin12@creatorscore.app" {...register("email")} />
           {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
         </div>
         <div className="space-y-2">
@@ -61,7 +61,7 @@ export function LoginForm() {
       </form>
 
       <p className="text-center text-xs text-muted-foreground">
-        Demo accounts — admin@creatorscore.app / password123 (Admin) · team@creatorscore.app / password123 (Team Member)
+        Demo accounts — Username: <strong>Admin12</strong> · Password: <strong>ad@1234</strong>
       </p>
     </div>
   );

@@ -20,8 +20,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = credentials?.email as string | undefined;
         const password = credentials?.password as string | undefined;
         if (!email || !password) return null;
-        const cleanEmail = email.trim().toLowerCase();
-        const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
+        const cleanInput = email.trim().toLowerCase();
+        const searchEmail = cleanInput.includes("@") ? cleanInput : `${cleanInput}@creatorscore.app`;
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [{ email: cleanInput }, { email: searchEmail }],
+          },
+        });
         if (!user?.password) return null;
 
         const isValid = await bcrypt.compare(password, user.password);
