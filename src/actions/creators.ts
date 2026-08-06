@@ -69,7 +69,7 @@ export async function getCreator(id: string) {
           orderBy: { createdAt: "desc" },
           include: { createdBy: { select: { name: true } } },
         },
-        notes: { orderBy: { createdAt: "desc" }, include: { createdBy: { select: { name: true } } },
+        notes: { orderBy: { createdAt: "desc" }, include: { createdBy: { select: { name: true } } } },
         campaigns: { include: { campaign: true } },
       },
     });
