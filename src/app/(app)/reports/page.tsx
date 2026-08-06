@@ -9,6 +9,8 @@ export default async function ReportsPage() {
       instagramUsername: true,
       platform: true,
       niche: true,
+      creatorType: true,
+      collaborationCategory: true,
       followers: true,
       engagementRate: true,
       totalScore: true,
@@ -18,17 +20,21 @@ export default async function ReportsPage() {
       status: true,
       email: true,
       phone: true,
+      monthlyRetainer: true,
+      couponCode: true,
     },
   });
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
-        <p className="text-sm text-muted-foreground">Export your creator database in the format your team needs.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Reports & Data Exports</h1>
+        <p className="text-sm text-muted-foreground">
+          Export your complete PRD creator database, generate printable PDF summaries, and export Excel workbooks.
+        </p>
       </div>
 
-      <ExportActions creators={creators} />
+      <ExportActions creators={creators as any} />
     </div>
   );
 }

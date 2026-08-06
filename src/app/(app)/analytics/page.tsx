@@ -1,6 +1,6 @@
-import { DollarSign, Eye, ShoppingCart, TrendingUp } from "lucide-react";
+import { Crown, DollarSign, Eye, Percent, Repeat, ShoppingCart, Target, TrendingUp } from "lucide-react";
 
-import { getCampaignPerformance, getTopCities, getTopLanguages, getTopPerformingCreators } from "@/lib/analytics";
+import { getPrdSuccessMetrics, getTopCities, getTopLanguages, getTopPerformingCreators } from "@/lib/analytics";
 import { getTopNiches } from "@/lib/dashboard";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { TopNichesChart } from "@/components/dashboard/charts";
@@ -9,9 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
 export default async function AnalyticsPage() {
-  const [performers, campaignPerf, topCities, topLanguages, topNiches] = await Promise.all([
+  const [performers, metrics, topCities, topLanguages, topNiches] = await Promise.all([
     getTopPerformingCreators(),
-    getCampaignPerformance(),
+    getPrdSuccessMetrics(),
     getTopCities(),
     getTopLanguages(),
     getTopNiches(),
@@ -20,15 +20,22 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="text-sm text-muted-foreground">Performance insights across your creator roster and campaigns.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Analytics & PRD Performance KPIs</h1>
+        <p className="text-sm text-muted-foreground">
+          Comprehensive performance metrics, ROI tracking, and creator collaboration success indicators.
+        </p>
       </div>
 
+      {/* PRD Section 9 Success Metrics Cards Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Average Campaign ROI" value={formatPercent(campaignPerf.averageRoi)} icon={TrendingUp} />
-        <StatCard label="Cost Per View" value={formatCurrency(campaignPerf.costPerView)} icon={Eye} />
-        <StatCard label="Cost Per Sale" value={formatCurrency(campaignPerf.costPerSale)} icon={ShoppingCart} />
-        <StatCard label="Total Campaigns" value={String(campaignPerf.campaignCount)} icon={DollarSign} />
+        <StatCard label="Return on Ad Spend (ROAS)" value={`${metrics.roas.toFixed(2)}x`} icon={TrendingUp} />
+        <StatCard label="Cost Per Acquisition (CPA)" value={formatCurrency(metrics.cpa)} icon={ShoppingCart} />
+        <StatCard label="Response Rate" value={formatPercent(metrics.creatorResponseRate)} icon={Target} />
+        <StatCard label="Conversion Rate" value={formatPercent(metrics.collaborationConversionRate)} icon={Percent} />
+        <StatCard label="Active Ambassadors" value={String(metrics.activeAmbassadors)} icon={Crown} />
+        <StatCard label="Repeat Collaboration Rate" value={formatPercent(metrics.repeatCollaborationRate)} icon={Repeat} />
+        <StatCard label="Campaign Completion" value={formatPercent(metrics.campaignCompletionRate)} icon={DollarSign} />
+        <StatCard label="Cost Per View (CPV)" value={formatCurrency(metrics.costPerView)} icon={Eye} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">

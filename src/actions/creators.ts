@@ -11,6 +11,8 @@ import { creatorSchema, type CreatorInput } from "@/lib/validations/creator";
 export type CreatorFilters = {
   search?: string;
   niche?: string;
+  creatorType?: string;
+  collaborationCategory?: string;
   platform?: string;
   relationshipStage?: string;
   status?: string;
@@ -32,6 +34,8 @@ export async function getCreators(filters: CreatorFilters = {}) {
     ];
   }
   if (filters.niche) where.niche = filters.niche as Niche;
+  if (filters.creatorType) (where as any).creatorType = filters.creatorType;
+  if (filters.collaborationCategory) (where as any).collaborationCategory = filters.collaborationCategory;
   if (filters.platform) where.platform = filters.platform as Platform;
   if (filters.relationshipStage) where.relationshipStage = filters.relationshipStage as RelationshipStage;
   if (filters.status) where.status = filters.status as CreatorStatus;

@@ -4,6 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------- Auth ----------
@@ -22,12 +24,12 @@ model User {
   password      String?
   role          Role      @default(TEAM_MEMBER)
 
-  accounts       Account[]
-  sessions       Session[]
-  createdCreators Creator[]      @relation("CreatorCreatedBy")
-  scores          Score[]        @relation("ScoreScoredBy")
+  accounts        Account[]
+  sessions        Session[]
+  createdCreators Creator[]       @relation("CreatorCreatedBy")
+  scores          Score[]         @relation("ScoreScoredBy")
   communications  Communication[] @relation("CommunicationCreatedBy")
-  notes           Note[]         @relation("NoteCreatedBy")
+  notes           Note[]          @relation("NoteCreatedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,16 +97,34 @@ enum Niche {
   OTHER
 }
 
+enum CreatorType {
+  SCIENCE
+  PERFORMANCE
+  LIFESTYLE
+  COMMUNITY
+  CELEBRITY
+}
+
+enum CollaborationCategory {
+  BARTER
+  GIFT_BOX
+  STORY
+  REEL
+  AFFILIATE
+  AMBASSADOR
+  SPONSORED
+}
+
 enum RelationshipStage {
   PROSPECT
+  SHORTLISTED
   CONTACTED
+  WAITING_REPLY
   INTERESTED
-  NEGOTIATING
-  GIFT_SENT
-  BARTER
-  AFFILIATE
-  PAID_STORY
-  PAID_REEL
+  NEGOTIATION
+  PRODUCT_SENT
+  CAMPAIGN_LIVE
+  COMPLETED
   AMBASSADOR
   INACTIVE
 }
@@ -131,42 +151,56 @@ enum CampaignStatus {
   CANCELLED
 }
 
+enum CampaignCategory {
+  SCIENCE
+  ATHLETE
+  LIFESTYLE
+  LAUNCH
+  SEASONAL
+}
+
 // ---------- Core domain ----------
 
 model Creator {
-  id                 String   @id @default(cuid())
-  profileImage       String?
-  name               String
-  instagramUsername  String?
-  platform           Platform @default(INSTAGRAM)
-  niche              Niche    @default(OTHER)
-  location           String?
-  language           String?
-  gender             String?
-  email              String?
-  phone              String?
-  website            String?
+  id                    String                @id @default(cuid())
+  profileImage          String?
+  name                  String
+  instagramUsername     String?
+  platform              Platform              @default(INSTAGRAM)
+  niche                 Niche                 @default(OTHER)
+  creatorType           CreatorType           @default(LIFESTYLE)
+  collaborationCategory CollaborationCategory @default(BARTER)
+  location              String?
+  language              String?
+  gender                String?
+  email                 String?
+  phone                 String?
+  website               String?
 
   // Audience
-  followers          Int    @default(0)
-  avgReelViews       Int    @default(0)
-  avgStoryViews      Int    @default(0)
-  avgLikes           Int    @default(0)
-  avgComments        Int    @default(0)
-  engagementRate     Float  @default(0)
-  audienceAgeRange   String?
+  followers           Int     @default(0)
+  avgReelViews        Int     @default(0)
+  avgStoryViews       Int     @default(0)
+  avgLikes            Int     @default(0)
+  avgComments         Int     @default(0)
+  engagementRate      Float   @default(0)
+  audienceAgeRange    String?
   audienceGenderSplit String?
-  audienceCountry    String?
-  audienceCity       String?
+  audienceCountry     String?
+  audienceCity        String?
 
-  // Pricing
-  storyPrice         Float?
-  reelPrice          Float?
-  postPrice          Float?
-  youtubePrice       Float?
-  packagePrice       Float?
-  affiliateAvailable Boolean @default(false)
-  barterAvailable    Boolean @default(false)
+  // Pricing & Commercials
+  storyPrice            Float?
+  reelPrice             Float?
+  postPrice             Float?
+  youtubePrice          Float?
+  packagePrice          Float?
+  monthlyRetainer       Float?
+  productInterested     String?
+  couponCode            String?
+  deliverablesCompleted String?
+  affiliateAvailable    Boolean @default(false)
+  barterAvailable       Boolean @default(false)
 
   // Internal / brand fit
   managerNotes           String? @db.Text
@@ -178,7 +212,7 @@ model Creator {
   relationshipStage RelationshipStage @default(PROSPECT)
   status            CreatorStatus     @default(ACTIVE)
 
-  // Latest computed score snapshot (denormalized for fast listing/sorting)
+  // Latest computed score snapshot
   totalScore     Float   @default(0)
   grade          String?
   recommendation String?
@@ -195,6 +229,8 @@ model Creator {
   updatedAt DateTime @updatedAt
 
   @@index([niche])
+  @@index([creatorType])
+  @@index([collaborationCategory])
   @@index([relationshipStage])
   @@index([status])
   @@index([totalScore])
@@ -250,22 +286,23 @@ model ScoringConfig {
 }
 
 model Campaign {
-  id            String         @id @default(cuid())
+  id            String           @id @default(cuid())
   name          String
   brand         String
-  budget        Float          @default(0)
+  category      CampaignCategory @default(LAUNCH)
+  budget        Float            @default(0)
   objective     String?
   expectedReach Int?
   expectedSales Int?
   startDate     DateTime?
   endDate       DateTime?
-  status        CampaignStatus @default(PLANNING)
+  status        CampaignStatus   @default(PLANNING)
 
-  views    Int   @default(0)
-  clicks   Int   @default(0)
-  sales    Int   @default(0)
-  revenue  Float @default(0)
-  cost     Float @default(0)
+  views   Int   @default(0)
+  clicks  Int   @default(0)
+  sales   Int   @default(0)
+  revenue Float @default(0)
+  cost    Float @default(0)
 
   creators CampaignCreator[]
 

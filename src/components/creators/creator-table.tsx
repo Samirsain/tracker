@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { RelationshipStageBadge, ScoreBadge, StatusBadge } from "@/components/creators/badges";
-import { labelFor, NICHE_OPTIONS, PLATFORM_OPTIONS } from "@/lib/constants";
+import { labelFor, NICHE_OPTIONS, CREATOR_TYPE_OPTIONS, COLLABORATION_CATEGORY_OPTIONS } from "@/lib/constants";
 import { formatCompactNumber, initials } from "@/lib/utils";
 import { deleteCreator } from "@/actions/creators";
 
@@ -36,6 +36,8 @@ type CreatorRow = {
   profileImage: string | null;
   instagramUsername: string | null;
   niche: string;
+  creatorType?: string;
+  collaborationCategory?: string;
   platform: string;
   followers: number;
   engagementRate: number;
@@ -81,8 +83,8 @@ export function CreatorTable({ creators, canDelete }: { creators: CreatorRow[]; 
           <TableHeader>
             <TableRow>
               <TableHead>Creator</TableHead>
-              <TableHead>Niche</TableHead>
-              <TableHead>Platform</TableHead>
+              <TableHead>Type & Niche</TableHead>
+              <TableHead>Collaboration Model</TableHead>
               <TableHead>Followers</TableHead>
               <TableHead>Engagement</TableHead>
               <TableHead>Score</TableHead>
@@ -108,8 +110,19 @@ export function CreatorTable({ creators, canDelete }: { creators: CreatorRow[]; 
                     </div>
                   </Link>
                 </TableCell>
-                <TableCell className="text-sm">{labelFor(NICHE_OPTIONS, creator.niche)}</TableCell>
-                <TableCell className="text-sm">{labelFor(PLATFORM_OPTIONS, creator.platform)}</TableCell>
+                <TableCell className="text-sm">
+                  <div className="space-y-0.5">
+                    <span className="font-medium text-xs rounded bg-muted px-1.5 py-0.5">
+                      {labelFor(CREATOR_TYPE_OPTIONS, creator.creatorType || "LIFESTYLE")}
+                    </span>
+                    <p className="text-xs text-muted-foreground">{labelFor(NICHE_OPTIONS, creator.niche)}</p>
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-500 border border-violet-500/20">
+                    {labelFor(COLLABORATION_CATEGORY_OPTIONS, creator.collaborationCategory || "BARTER")}
+                  </span>
+                </TableCell>
                 <TableCell className="text-sm tabular-nums">{formatCompactNumber(creator.followers)}</TableCell>
                 <TableCell className="text-sm tabular-nums">{creator.engagementRate.toFixed(1)}%</TableCell>
                 <TableCell>

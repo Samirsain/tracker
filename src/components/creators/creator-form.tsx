@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
+import { AiAutoFill } from "@/components/creators/ai-autofill";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,6 +17,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   NICHE_OPTIONS,
+  CREATOR_TYPE_OPTIONS,
+  COLLABORATION_CATEGORY_OPTIONS,
   PLATFORM_OPTIONS,
   RELATIONSHIP_STAGE_OPTIONS,
   STATUS_OPTIONS,
@@ -29,6 +32,8 @@ const DEFAULT_VALUES: CreatorInput = {
   instagramUsername: "",
   platform: "INSTAGRAM",
   niche: "OTHER",
+  creatorType: "LIFESTYLE",
+  collaborationCategory: "BARTER",
   location: "",
   language: "",
   gender: "",
@@ -50,6 +55,10 @@ const DEFAULT_VALUES: CreatorInput = {
   postPrice: undefined,
   youtubePrice: undefined,
   packagePrice: undefined,
+  monthlyRetainer: undefined,
+  productInterested: "",
+  couponCode: "",
+  deliverablesCompleted: "",
   affiliateAvailable: false,
   barterAvailable: false,
   managerNotes: "",
@@ -105,11 +114,26 @@ export function CreatorForm({
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<CreatorFormInput, unknown, CreatorInput>({
     resolver: zodResolver(creatorSchema),
     defaultValues: { ...DEFAULT_VALUES, ...defaultValues },
   });
+
+  const handleAiFill = React.useCallback(
+    (data: Partial<CreatorInput>) => {
+      (Object.entries(data) as [keyof CreatorInput, CreatorInput[keyof CreatorInput]][]).forEach(
+        ([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            setValue(key, value as never, { shouldDirty: true, shouldValidate: false });
+          }
+        }
+      );
+      toast.success("✨ Form filled with AI details!");
+    },
+    [setValue]
+  );
 
   async function onSubmit(values: CreatorInput) {
     setIsSubmitting(true);
@@ -127,6 +151,8 @@ export function CreatorForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {!creatorId && <AiAutoFill onFill={handleAiFill} />}
+
       <FormSection title="Basic Information">
         <Field label="Creator name" error={errors.name?.message}>
           <Input {...register("name")} placeholder="Jane Doe" />
@@ -157,6 +183,8 @@ export function CreatorForm({
             )}
           />
         </Field>
+
+        {/* PRD Categorization */}
         <Field label="Niche">
           <Controller
             control={control}
@@ -177,27 +205,70 @@ export function CreatorForm({
             )}
           />
         </Field>
+
+        <Field label="Creator Type (PRD)">
+          <Controller
+            control={control}
+            name="creatorType"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CREATOR_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </Field>
+
+        <Field label="Collaboration Model (PRD)">
+          <Controller
+            control={control}
+            name="collaborationCategory"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {COLLABORATION_CATEGORY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </Field>
+
         <Field label="Location">
           <Input {...register("location")} placeholder="Mumbai, India" />
         </Field>
         <Field label="Language">
-          <Input {...register("language")} placeholder="English" />
+          <Input {...register("language")} placeholder="Hindi / English" />
         </Field>
         <Field label="Gender">
-          <Input {...register("gender")} placeholder="Female" />
+          <Input {...register("gender")} placeholder="Female / Male" />
         </Field>
         <Field label="Email" error={errors.email?.message}>
           <Input {...register("email")} placeholder="creator@email.com" />
         </Field>
         <Field label="Phone">
-          <Input {...register("phone")} placeholder="+1 555 000 0000" />
+          <Input {...register("phone")} placeholder="+91 98765 43210" />
         </Field>
         <Field label="Website" error={errors.website?.message}>
           <Input {...register("website")} placeholder="https://..." />
         </Field>
       </FormSection>
 
-      <FormSection title="Audience">
+      <FormSection title="Audience Metrics">
         <Field label="Followers">
           <Input type="number" {...register("followers")} />
         </Field>
@@ -223,14 +294,14 @@ export function CreatorForm({
           <Input {...register("audienceGenderSplit")} placeholder="60% Female / 40% Male" />
         </Field>
         <Field label="Audience Country">
-          <Input {...register("audienceCountry")} placeholder="United States" />
+          <Input {...register("audienceCountry")} placeholder="India" />
         </Field>
         <Field label="Audience City">
-          <Input {...register("audienceCity")} placeholder="Los Angeles" />
+          <Input {...register("audienceCity")} placeholder="Mumbai" />
         </Field>
       </FormSection>
 
-      <FormSection title="Pricing">
+      <FormSection title="Commercials & Deliverables (PRD)">
         <Field label="Story Price">
           <Input type="number" {...register("storyPrice")} />
         </Field>
@@ -243,9 +314,22 @@ export function CreatorForm({
         <Field label="YouTube Price">
           <Input type="number" {...register("youtubePrice")} />
         </Field>
+        <Field label="Monthly Retainer (Ambassador)">
+          <Input type="number" {...register("monthlyRetainer")} placeholder="e.g. 50000" />
+        </Field>
         <Field label="Package Price">
           <Input type="number" {...register("packagePrice")} />
         </Field>
+        <Field label="Product Interested">
+          <Input {...register("productInterested")} placeholder="e.g. Daily Whey Protein" />
+        </Field>
+        <Field label="Coupon Code">
+          <Input {...register("couponCode")} placeholder="e.g. CARRY20" />
+        </Field>
+        <Field label="Deliverables Completed">
+          <Input {...register("deliverablesCompleted")} placeholder="e.g. 1 Reel, 3 Stories" />
+        </Field>
+
         <div className="flex items-center gap-6 sm:col-span-2">
           <div className="flex items-center gap-2">
             <Controller
@@ -296,7 +380,7 @@ export function CreatorForm({
         </div>
       </FormSection>
 
-      <FormSection title="Relationship & Status">
+      <FormSection title="Relationship & Status (PRD Lifecycle)">
         <Field label="Relationship Stage">
           <Controller
             control={control}
