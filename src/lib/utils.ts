@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(value: number | null | undefined) {
-  if (value === null || value === undefined) return "-";
+  if (value === null || value === undefined || isNaN(value)) return "$0";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -15,20 +15,22 @@ export function formatCurrency(value: number | null | undefined) {
 }
 
 export function formatCompactNumber(value: number | null | undefined) {
-  if (value === null || value === undefined) return "-";
+  if (value === null || value === undefined || isNaN(value)) return "0";
   return new Intl.NumberFormat("en-US", { notation: "compact" }).format(value);
 }
 
 export function formatPercent(value: number | null | undefined, digits = 1) {
-  if (value === null || value === undefined) return "-";
+  if (value === null || value === undefined || isNaN(value)) return "0%";
   return `${value.toFixed(digits)}%`;
 }
 
 export function formatDate(value: Date | string | null | undefined) {
   if (!value) return "-";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "-";
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
-  }).format(new Date(value));
+  }).format(d);
 }
 
 export function initials(name: string) {

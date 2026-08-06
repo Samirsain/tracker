@@ -65,8 +65,8 @@ export function RecentActivity({
           <Plus className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent className="space-y-1">
-          {recentCreators.length === 0 && <EmptyRow label="No creators yet" />}
-          {recentCreators.map((creator) => (
+          {(!recentCreators || recentCreators.length === 0) && <EmptyRow label="No creators yet" />}
+          {recentCreators?.map((creator) => (
             <CreatorRow
               key={creator.id}
               creator={creator}
@@ -82,15 +82,17 @@ export function RecentActivity({
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent className="space-y-1">
-          {recentScores.length === 0 && <EmptyRow label="No scores yet" />}
-          {recentScores.map((score) => (
-            <CreatorRow
-              key={score.id}
-              creator={score.creator}
-              meta={formatDate(score.createdAt)}
-              right={<Badge variant="secondary">{Math.round(score.totalScore)}</Badge>}
-            />
-          ))}
+          {(!recentScores || recentScores.filter((s) => s.creator).length === 0) && <EmptyRow label="No scores yet" />}
+          {recentScores
+            ?.filter((score) => score.creator)
+            .map((score) => (
+              <CreatorRow
+                key={score.id}
+                creator={score.creator}
+                meta={formatDate(score.createdAt)}
+                right={<Badge variant="secondary">{Math.round(score.totalScore)}</Badge>}
+              />
+            ))}
         </CardContent>
       </Card>
 
@@ -100,14 +102,16 @@ export function RecentActivity({
           <MessageCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent className="space-y-1">
-          {recentCommunications.length === 0 && <EmptyRow label="No conversations yet" />}
-          {recentCommunications.map((comm) => (
-            <CreatorRow
-              key={comm.id}
-              creator={comm.creator}
-              meta={`${labelFor(COMMUNICATION_TYPE_OPTIONS, comm.type)} · ${formatDate(comm.createdAt)}`}
-            />
-          ))}
+          {(!recentCommunications || recentCommunications.filter((c) => c.creator).length === 0) && <EmptyRow label="No conversations yet" />}
+          {recentCommunications
+            ?.filter((comm) => comm.creator)
+            .map((comm) => (
+              <CreatorRow
+                key={comm.id}
+                creator={comm.creator}
+                meta={`${labelFor(COMMUNICATION_TYPE_OPTIONS, comm.type)} · ${formatDate(comm.createdAt)}`}
+              />
+            ))}
         </CardContent>
       </Card>
 
@@ -117,14 +121,16 @@ export function RecentActivity({
           <CalendarClock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent className="space-y-1">
-          {upcomingFollowUps.length === 0 && <EmptyRow label="Nothing scheduled" />}
-          {upcomingFollowUps.map((followUp) => (
-            <CreatorRow
-              key={followUp.id}
-              creator={followUp.creator}
-              meta={`Due ${formatDate(followUp.nextFollowUpDate)}`}
-            />
-          ))}
+          {(!upcomingFollowUps || upcomingFollowUps.filter((f) => f.creator).length === 0) && <EmptyRow label="Nothing scheduled" />}
+          {upcomingFollowUps
+            ?.filter((followUp) => followUp.creator)
+            .map((followUp) => (
+              <CreatorRow
+                key={followUp.id}
+                creator={followUp.creator}
+                meta={`Due ${formatDate(followUp.nextFollowUpDate)}`}
+              />
+            ))}
         </CardContent>
       </Card>
     </div>
