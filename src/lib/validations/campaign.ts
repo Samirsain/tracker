@@ -15,3 +15,4 @@ export const campaignSchema = z.object({
 });
 
 export type CampaignInput = z.infer<typeof campaignSchema>;
+export type CampaignFormInput = z.input<typeof campaignSchema>;

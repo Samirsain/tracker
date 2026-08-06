@@ -81,7 +81,8 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
 
   function handleApply() {
     if (!preview) return;
-    const { _meta: _enrichMeta, ...formData } = preview;
+    const formData = { ...preview };
+    delete (formData as Partial<EnrichResult>)._meta;
     onFill(formData);
     setPreview(null);
     setStatus("idle");

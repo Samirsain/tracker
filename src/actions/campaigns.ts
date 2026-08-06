@@ -31,9 +31,9 @@ export async function createCampaign(input: CampaignInput) {
       startDate: data.startDate ? new Date(data.startDate) : null,
       endDate: data.endDate ? new Date(data.endDate) : null,
       status: data.status,
-      creators: {
+      creators: data.creatorIds && data.creatorIds.length > 0 ? {
         create: data.creatorIds.map((creatorId) => ({ creatorId })),
-      },
+      } : undefined,
     },
   });
 

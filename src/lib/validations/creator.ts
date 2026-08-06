@@ -136,6 +136,8 @@ export function creatorToFormValues(creator: Creator): CreatorInput {
     managerNotes: c.managerNotes ?? "",
     previousCollaborations: c.previousCollaborations ?? "",
     specialRequirements: c.specialRequirements ?? "",
+    contractAttached: c.contractAttached,
+    mediaKitAttached: c.mediaKitAttached,
     relationshipStage: c.relationshipStage as CreatorInput["relationshipStage"],
     status: c.status,
   };
