@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RelationshipStageBadge, ScoreBadge, StatusBadge } from "@/components/creators/badges";
 import { AddScoreDialog } from "@/components/scoring/add-score-dialog";
-import { initials } from "@/lib/utils";
+import { handle, initials } from "@/lib/utils";
 import { deleteCreator, updateCreator } from "@/actions/creators";
 import { creatorToFormValues } from "@/lib/validations/creator";
 import type { ScoringThresholds, ScoringWeights } from "@/lib/scoring";
@@ -77,7 +77,7 @@ export function CreatorHeader({
         </Avatar>
         <div className="space-y-1.5">
           <h1 className="text-xl font-semibold">{creator.name}</h1>
-          {creator.instagramUsername && <p className="text-sm text-muted-foreground">@{creator.instagramUsername}</p>}
+          {creator.instagramUsername && <p className="text-sm text-muted-foreground">{handle(creator.instagramUsername)}</p>}
           <div className="flex flex-wrap items-center gap-2">
             <ScoreBadge score={creator.totalScore} />
             <RelationshipStageBadge stage={creator.relationshipStage} />

@@ -37,7 +37,7 @@ export function BrandAndNotificationSettings() {
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Building2 className="h-4 w-4 text-violet-500" /> Brand Identity
+            <Building2 className="h-4 w-4 text-primary" /> Brand Identity
           </CardTitle>
           <CardDescription>Company branding and default currency preferences.</CardDescription>
         </CardHeader>
@@ -110,7 +110,7 @@ export function BrandAndNotificationSettings() {
               <Switch checked={weeklySummaries} onCheckedChange={setWeeklySummaries} />
             </div>
 
-            <div className="rounded-lg bg-violet-500/10 p-3 text-xs text-violet-600 dark:text-violet-400 flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-3 text-xs text-primary flex items-center gap-2">
               <Sparkles className="h-4 w-4 shrink-0" />
               AI Automated notifications enabled for high-priority creator deals.
             </div>

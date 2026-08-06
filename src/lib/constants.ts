@@ -23,22 +23,25 @@ export const NICHE_OPTIONS = [
   { value: "OTHER", label: "Other" },
 ] as const;
 
+// `label` is the short name — it goes in table cells, detail rows and CSV
+// exports, so it has to stay tight. `hint` carries the explanatory detail and
+// is only rendered inside the form dropdowns, where there is room for it.
 export const CREATOR_TYPE_OPTIONS = [
-  { value: "SCIENCE", label: "🔬 Science (Doctor, Nutritionist, Researcher)" },
-  { value: "PERFORMANCE", label: "🏃 Performance (Runner, Athlete, Cyclist)" },
-  { value: "LIFESTYLE", label: "🌿 Lifestyle (Wellness, Entrepreneur)" },
-  { value: "COMMUNITY", label: "👥 Community (Nano / Micro Niche)" },
-  { value: "CELEBRITY", label: "⭐ Celebrity (Mass Awareness)" },
+  { value: "SCIENCE", label: "Science", hint: "Doctor, nutritionist, researcher" },
+  { value: "PERFORMANCE", label: "Performance", hint: "Runner, athlete, cyclist" },
+  { value: "LIFESTYLE", label: "Lifestyle", hint: "Wellness, entrepreneur" },
+  { value: "COMMUNITY", label: "Community", hint: "Nano / micro niche" },
+  { value: "CELEBRITY", label: "Celebrity", hint: "Mass awareness" },
 ] as const;
 
 export const COLLABORATION_CATEGORY_OPTIONS = [
-  { value: "BARTER", label: "📦 Barter (Product Only)" },
-  { value: "GIFT_BOX", label: "🎁 Gift Box (PR Package)" },
-  { value: "STORY", label: "📸 Story Campaign" },
-  { value: "REEL", label: "🎬 Reel Campaign" },
-  { value: "AFFILIATE", label: "🔗 Affiliate Partner" },
-  { value: "AMBASSADOR", label: "👑 Brand Ambassador" },
-  { value: "SPONSORED", label: "💼 Sponsored Partnership" },
+  { value: "BARTER", label: "Barter", hint: "Product only" },
+  { value: "GIFT_BOX", label: "Gift Box", hint: "PR package" },
+  { value: "STORY", label: "Story Campaign", hint: "" },
+  { value: "REEL", label: "Reel Campaign", hint: "" },
+  { value: "AFFILIATE", label: "Affiliate Partner", hint: "" },
+  { value: "AMBASSADOR", label: "Brand Ambassador", hint: "" },
+  { value: "SPONSORED", label: "Sponsored Partnership", hint: "" },
 ] as const;
 
 export const RELATIONSHIP_STAGE_OPTIONS = [
@@ -78,11 +81,11 @@ export const CAMPAIGN_STATUS_OPTIONS = [
 ] as const;
 
 export const CAMPAIGN_CATEGORY_OPTIONS = [
-  { value: "SCIENCE", label: "🔬 Science Campaign" },
-  { value: "ATHLETE", label: "🏃 Athlete Campaign" },
-  { value: "LIFESTYLE", label: "🌿 Lifestyle Campaign" },
-  { value: "LAUNCH", label: "🚀 Launch Campaign" },
-  { value: "SEASONAL", label: "🎉 Seasonal Campaign" },
+  { value: "SCIENCE", label: "Science Campaign" },
+  { value: "ATHLETE", label: "Athlete Campaign" },
+  { value: "LIFESTYLE", label: "Lifestyle Campaign" },
+  { value: "LAUNCH", label: "Launch Campaign" },
+  { value: "SEASONAL", label: "Seasonal Campaign" },
 ] as const;
 
 export const STATUS_BADGE_CLASSES: Record<string, string> = {
@@ -91,18 +94,25 @@ export const STATUS_BADGE_CLASSES: Record<string, string> = {
   BLACKLISTED: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400",
 };
 
+// The pipeline is a progression, so colour encodes *how far along* rather than
+// giving every stage its own hue. Four families, each meaning something:
+//   slate   = cold, nothing owed by anyone
+//   blue    = in motion, ball is in our court
+//   amber   = blocked, waiting on the creator
+//   emerald = live or won
+// Ten different hues (incl. purple, pink, indigo) just read as decoration.
 export const RELATIONSHIP_BADGE_CLASSES: Record<string, string> = {
-  PROSPECT: "bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-300",
-  SHORTLISTED: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
-  CONTACTED: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
-  WAITING_REPLY: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
-  INTERESTED: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
-  NEGOTIATION: "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
-  PRODUCT_SENT: "bg-pink-100 text-pink-700 dark:bg-pink-500/10 dark:text-pink-400",
-  CAMPAIGN_LIVE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 font-bold animate-pulse",
-  COMPLETED: "bg-teal-100 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400",
-  AMBASSADOR: "bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400 font-bold",
-  INACTIVE: "bg-gray-100 text-gray-500 dark:bg-gray-500/10 dark:text-gray-400",
+  PROSPECT: "bg-slate-100 text-slate-600 dark:bg-slate-500/10 dark:text-slate-300",
+  SHORTLISTED: "bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200",
+  CONTACTED: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300",
+  WAITING_REPLY: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
+  INTERESTED: "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300",
+  NEGOTIATION: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
+  PRODUCT_SENT: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200",
+  CAMPAIGN_LIVE: "bg-emerald-100 text-emerald-800 font-semibold dark:bg-emerald-500/15 dark:text-emerald-300",
+  COMPLETED: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400",
+  AMBASSADOR: "bg-emerald-600 text-white font-semibold dark:bg-emerald-500 dark:text-emerald-950",
+  INACTIVE: "bg-muted text-muted-foreground",
 };
 
 export function labelFor(options: readonly { value: string; label: string }[], value: string) {

@@ -24,8 +24,9 @@ export default async function ProfilePage() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Premium Profile Header Card */}
       <Card className="overflow-hidden border-0 shadow-lg">
-        {/* Vibrant Gradient Cover */}
-        <div className="h-32 bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-800 p-6 flex justify-end items-start">
+        {/* Tonal cover — one hue, deepening. A multi-hue gradient here was the
+            loudest thing on an otherwise neutral page. */}
+        <div className="h-32 bg-gradient-to-br from-emerald-700 to-emerald-900 p-6 flex justify-end items-start">
           <Badge className="bg-white/20 text-white backdrop-blur-md border-white/30">
             <Sparkles className="h-3.5 w-3.5 mr-1" /> Verified Admin
           </Badge>
@@ -36,33 +37,35 @@ export default async function ProfilePage() {
             <div className="flex items-end gap-4">
               <Avatar className="h-24 w-24 border-4 border-background shadow-xl rounded-full">
                 {session.user.image && <AvatarImage src={session.user.image} alt={userName} />}
-                <AvatarFallback className="text-2xl font-bold bg-violet-600 text-white">
+                <AvatarFallback className="text-2xl font-bold bg-primary text-white">
                   {initials(userName)}
                 </AvatarFallback>
               </Avatar>
               <div className="mb-1 space-y-0.5">
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold tracking-tight">{userName}</h1>
-                  <ShieldCheck className="h-5 w-5 text-violet-500 fill-violet-500/20" />
+                  <ShieldCheck className="h-5 w-5 text-primary fill-primary/20" />
                 </div>
                 <p className="text-sm text-muted-foreground">{session.user.email}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 rounded-xl bg-violet-500/10 px-3.5 py-2 text-violet-600 dark:text-violet-400">
-                <Layers className="h-4 w-4" />
+              {/* Peer metrics share one treatment — two different hues made
+                  them look like they meant different things. */}
+              <div className="flex items-center gap-2 rounded-xl bg-muted px-3.5 py-2">
+                <Layers className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Managed Creators</p>
-                  <p className="text-sm font-bold">{creatorCount}</p>
+                  <p className="text-[10px] uppercase tracking-wide font-medium text-muted-foreground">Managed Creators</p>
+                  <p className="text-sm font-semibold">{creatorCount}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 rounded-xl bg-indigo-500/10 px-3.5 py-2 text-indigo-600 dark:text-indigo-400">
-                <Award className="h-4 w-4" />
+              <div className="flex items-center gap-2 rounded-xl bg-muted px-3.5 py-2">
+                <Award className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Live Campaigns</p>
-                  <p className="text-sm font-bold">{campaignCount}</p>
+                  <p className="text-[10px] uppercase tracking-wide font-medium text-muted-foreground">Live Campaigns</p>
+                  <p className="text-sm font-semibold">{campaignCount}</p>
                 </div>
               </div>
             </div>

@@ -96,11 +96,11 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
   }
 
   return (
-    <div className="rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-500/5 via-purple-500/5 to-fuchsia-500/5 p-4 space-y-4">
+    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500">
-          <Sparkles className="h-4 w-4 text-white" />
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Sparkles className="h-4 w-4" />
         </div>
         <div>
           <p className="text-sm font-semibold text-foreground">AI Auto-fill</p>
@@ -119,7 +119,7 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
             onChange={(e) => setUsername(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="username"
-            className="pl-7 border-violet-500/30 focus:border-violet-500 bg-background/50"
+            className="pl-7 border-primary/25 focus:border-primary bg-background/50"
             disabled={status === "loading"}
           />
         </div>
@@ -127,7 +127,7 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
           type="button"
           onClick={handleEnrich}
           disabled={status === "loading" || !username.trim()}
-          className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white border-0 shrink-0"
+          className="shrink-0"
         >
           {status === "loading" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -172,14 +172,14 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
                   <img
                     src={preview.profileImage}
                     alt={preview.name}
-                    className="h-12 w-12 rounded-full object-cover border-2 border-violet-500/30"
+                    className="h-12 w-12 rounded-full object-cover border-2 border-primary/25"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
                     }}
                   />
                 ) : (
-                  <div className="h-12 w-12 rounded-full bg-violet-500/20 flex items-center justify-center">
-                    <User className="h-6 w-6 text-violet-500" />
+                  <div className="h-12 w-12 rounded-full bg-primary/15 flex items-center justify-center">
+                    <User className="h-6 w-6 text-primary" />
                   </div>
                 )}
                 {preview._meta.isVerified && (
@@ -193,10 +193,11 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <p className="font-semibold text-sm truncate">{preview.name}</p>
-                  <span className="text-xs text-violet-500 font-medium">{preview.instagramUsername}</span>
+                  <span className="text-xs text-primary font-medium">{preview.instagramUsername}</span>
                   {preview._meta.source && (
-                    <span className="text-[10px] bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded font-mono">
-                      ✨ {preview._meta.source}
+                    <span className="inline-flex items-center gap-1 text-[10px] bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">
+                      <Sparkles className="h-2.5 w-2.5" />
+                      {preview._meta.source}
                     </span>
                   )}
                 </div>
@@ -204,7 +205,7 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
                   <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{preview._meta.bio}</p>
                 )}
                 {preview._meta.category && (
-                  <span className="inline-block mt-1 text-xs bg-violet-500/10 text-violet-600 dark:text-violet-400 px-2 py-0.5 rounded-full border border-violet-500/20">
+                  <span className="inline-block mt-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
                     {preview._meta.category}
                   </span>
                 )}
@@ -217,19 +218,16 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
                 icon={<Users className="h-3.5 w-3.5" />}
                 label="Followers"
                 value={preview._meta.followersFormatted}
-                color="violet"
               />
               <StatCard
                 icon={<TrendingUp className="h-3.5 w-3.5" />}
                 label="Engagement"
                 value={preview._meta.engagementRateFormatted}
-                color="emerald"
               />
               <StatCard
                 icon={<Sparkles className="h-3.5 w-3.5" />}
                 label="Niche"
                 value={preview._meta.detectedNiche}
-                color="fuchsia"
               />
             </div>
 
@@ -256,7 +254,7 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
                 type="button"
                 size="sm"
                 onClick={handleApply}
-                className="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white border-0"
+                className="flex-1"
               >
                 <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
                 Apply to Form
@@ -278,30 +276,25 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
   );
 }
 
+// These three are peer metrics, so they share one treatment. Colour here would
+// only be decoration, and it competes with the score badges that use colour to
+// actually mean something.
 function StatCard({
   icon,
   label,
   value,
-  color,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string | number;
-  color: "violet" | "emerald" | "fuchsia";
 }) {
-  const colorMap = {
-    violet: "text-violet-500 bg-violet-500/10 border-violet-500/20",
-    emerald: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-    fuchsia: "text-fuchsia-500 bg-fuchsia-500/10 border-fuchsia-500/20",
-  };
-
   return (
-    <div className={`rounded-lg border p-2 text-center ${colorMap[color]}`}>
-      <div className="flex items-center justify-center gap-1 mb-0.5">
+    <div className="rounded-lg border border-border/60 bg-background/60 p-2 text-center">
+      <div className="flex items-center justify-center gap-1 mb-0.5 text-muted-foreground">
         {icon}
-        <Label className="text-[10px] font-medium uppercase tracking-wide opacity-70">{label}</Label>
+        <Label className="text-[10px] font-medium uppercase tracking-wide">{label}</Label>
       </div>
-      <p className="text-sm font-bold truncate">{value || "—"}</p>
+      <p className="text-sm font-semibold truncate">{value || "—"}</p>
     </div>
   );
 }

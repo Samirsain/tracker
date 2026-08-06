@@ -186,10 +186,11 @@ export function getRecommendation(
 // A returned 0 means "not enough data to suggest" — never a score of zero.
 
 /**
- * Cost per 1000 reached, in whatever currency prices are stored in.
+ * Cost per 1000 reached, in whatever currency prices are stored in (the rest of
+ * the app formats prices as USD).
  * ponytail: linear between these two bounds; tune them to your market rather
- * than reshaping the curve. Defaults are set for the INR reel pricing in this
- * workspace (observed CPM ≈ 1-11).
+ * than reshaping the curve. Defaults are fitted to the reel pricing currently in
+ * this workspace (observed CPM ≈ 1-11).
  */
 export const CPM_BEST = 1;
 export const CPM_WORST = 25;
@@ -258,7 +259,7 @@ export function suggestScores(metrics: CreatorMetrics): Suggestion {
   if (reach) {
     values.reach = reach;
     const audience = Math.max(metrics.followers, metrics.avgReelViews);
-    basis.reach = `${audience.toLocaleString("en-IN")} ${metrics.avgReelViews > metrics.followers ? "avg reel views" : "followers"}`;
+    basis.reach = `${audience.toLocaleString("en-US")} ${metrics.avgReelViews > metrics.followers ? "avg reel views" : "followers"}`;
   }
 
   // Prefer the stored rate; fall back to recomputing it from raw counts.
@@ -274,7 +275,7 @@ export function suggestScores(metrics: CreatorMetrics): Suggestion {
   const cost = autoCostEfficiencyScore({ price, reach: reachForCpm });
   if (cost) {
     values.costEfficiency = cost;
-    basis.costEfficiency = `₹${((price / reachForCpm) * 1000).toFixed(1)} per 1,000 reached`;
+    basis.costEfficiency = `$${((price / reachForCpm) * 1000).toFixed(1)} per 1,000 reached`;
   }
 
   return { values, basis };

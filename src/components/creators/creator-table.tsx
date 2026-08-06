@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Eye, Users, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RelationshipStageBadge, ScoreBadge, StatusBadge } from "@/components/creators/badges";
 import { labelFor, NICHE_OPTIONS, CREATOR_TYPE_OPTIONS, COLLABORATION_CATEGORY_OPTIONS } from "@/lib/constants";
-import { formatCompactNumber, initials } from "@/lib/utils";
+import { formatCompactNumber, handle, initials } from "@/lib/utils";
 import { deleteCreator } from "@/actions/creators";
 
 type CreatorRow = {
@@ -69,9 +69,21 @@ export function CreatorTable({ creators, canDelete }: { creators: CreatorRow[]; 
 
   if (creators.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed py-16 text-center">
-        <p className="text-sm font-medium">No creators found</p>
-        <p className="text-sm text-muted-foreground">Try adjusting your filters or add a new creator.</p>
+      <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed py-16 text-center">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
+          <Users className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium">No creators match this view</p>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            Clear your filters, or add a creator and let the Instagram auto-fill do the typing.
+          </p>
+        </div>
+        <Button asChild size="sm" className="mt-1">
+          <Link href="/creators/new">
+            <Plus /> Add creator
+          </Link>
+        </Button>
       </div>
     );
   }
@@ -105,21 +117,21 @@ export function CreatorTable({ creators, canDelete }: { creators: CreatorRow[]; 
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{creator.name || "Unnamed Creator"}</p>
                       {creator.instagramUsername && (
-                        <p className="truncate text-xs text-muted-foreground">@{creator.instagramUsername}</p>
+                        <p className="truncate text-xs text-muted-foreground">{handle(creator.instagramUsername)}</p>
                       )}
                     </div>
                   </Link>
                 </TableCell>
                 <TableCell className="text-sm">
-                  <div className="space-y-0.5">
-                    <span className="font-medium text-xs rounded bg-muted px-1.5 py-0.5">
+                  <div className="space-y-1">
+                    <span className="inline-block whitespace-nowrap rounded bg-muted px-1.5 py-0.5 text-xs font-medium">
                       {labelFor(CREATOR_TYPE_OPTIONS, creator.creatorType || "LIFESTYLE")}
                     </span>
                     <p className="text-xs text-muted-foreground">{labelFor(NICHE_OPTIONS, creator.niche)}</p>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm">
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-500 border border-violet-500/20">
+                  <span className="inline-block whitespace-nowrap rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                     {labelFor(COLLABORATION_CATEGORY_OPTIONS, creator.collaborationCategory || "BARTER")}
                   </span>
                 </TableCell>

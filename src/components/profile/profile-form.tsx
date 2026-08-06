@@ -50,7 +50,7 @@ export function ProfileForm({
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <User className="h-4 w-4 text-violet-500" /> Account Information
+            <User className="h-4 w-4 text-primary" /> Account Information
           </CardTitle>
           <CardDescription>Update your personal details and public profile info.</CardDescription>
         </CardHeader>

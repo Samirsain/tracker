@@ -12,7 +12,7 @@ export function RelationshipStageBadge({ stage }: { stage: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium",
         RELATIONSHIP_BADGE_CLASSES[stage]
       )}
     >
@@ -25,7 +25,7 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium",
         STATUS_BADGE_CLASSES[status]
       )}
     >
@@ -41,7 +41,7 @@ export function RecommendationBadge({ recommendation }: { recommendation: string
   const color = RECOMMENDATION_COLORS[recommendation as Recommendation] ?? "#64748b";
   return (
     <span
-      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
+      className="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
       style={{ backgroundColor: color }}
     >
       {recommendation}

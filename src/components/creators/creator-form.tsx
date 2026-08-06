@@ -219,6 +219,7 @@ export function CreatorForm({
                   {CREATOR_TYPE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
+                      {option.hint && <span className="ml-1.5 text-muted-foreground">{option.hint}</span>}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -240,6 +241,7 @@ export function CreatorForm({
                   {COLLABORATION_CATEGORY_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
+                      {option.hint && <span className="ml-1.5 text-muted-foreground">{option.hint}</span>}
                     </SelectItem>
                   ))}
                 </SelectContent>

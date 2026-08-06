@@ -41,7 +41,7 @@ export function ScoreInputSliders({
               onValueChange={([value]) => onChange(key, value)}
             />
             {basis[key] && (
-              <p className="flex items-center gap-1.5 text-[11px] text-violet-600 dark:text-violet-400">
+              <p className="flex items-center gap-1.5 text-[11px] text-primary">
                 <Sparkles className="h-3 w-3 shrink-0" />
                 Auto-suggested: {basis[key]}
               </p>

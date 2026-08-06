@@ -195,7 +195,7 @@ export function ExportActions({ creators }: { creators: CreatorExportRow[] }) {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Printer className="h-4 w-4 text-violet-500" /> Print Summary
+              <Printer className="h-4 w-4 text-primary" /> Print Summary
             </CardTitle>
             <CardDescription>Print clean summary report table directly.</CardDescription>
           </CardHeader>

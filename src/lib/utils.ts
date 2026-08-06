@@ -33,6 +33,16 @@ export function formatDate(value: Date | string | null | undefined) {
   }).format(d);
 }
 
+/**
+ * Instagram handles are stored inconsistently — auto-fill saves them with a
+ * leading "@", hand-typed ones usually without. Render through this so the "@"
+ * appears exactly once either way.
+ */
+export function handle(username: string | null | undefined) {
+  const clean = username?.trim().replace(/^@+/, "");
+  return clean ? `@${clean}` : "";
+}
+
 export function initials(name: string) {
   return name
     .split(" ")
