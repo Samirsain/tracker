@@ -18,7 +18,9 @@ interface EnrichMeta {
   engagementRateFormatted: string;
   detectedNiche: string;
   detectedGender: string;
-  source?: "Instagram API" | "Gemini AI";
+  source?: "Instagram API" | "Instagram API + AI";
+  /** AI-guessed fields (audience demographics etc.) — manager should verify. */
+  estimatedFields?: string[];
 }
 
 interface EnrichResult {
@@ -235,6 +237,16 @@ export function AiAutoFill({ onFill }: AiAutoFillProps) {
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 {preview.location}
+              </div>
+            )}
+
+            {preview._meta.estimatedFields && preview._meta.estimatedFields.length > 0 && (
+              <div className="flex items-start gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 px-2.5 py-2">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-px" />
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 leading-relaxed">
+                  AI estimate (verify karein): {preview._meta.estimatedFields.join(", ")}.
+                  Followers, likes aur engagement rate Instagram se real hain.
+                </p>
               </div>
             )}
 

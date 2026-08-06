@@ -23,59 +23,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (!email || !password) return null;
 
           const cleanInput = email.trim().toLowerCase();
+          // Bare usernames ("Admin12") are expanded to the workspace domain.
           const searchEmail = cleanInput.includes("@") ? cleanInput : `${cleanInput}@creatorscore.app`;
 
-          let user = await prisma.user.findFirst({
-            where: {
-              OR: [
-                { email: cleanInput },
-                { email: searchEmail },
-                { email: "admin12@creatorscore.app" },
-                { email: "admin@creatorscore.app" },
-              ],
-            },
-          });
+          const user = await prisma.user.findUnique({ where: { email: searchEmail } });
+          if (!user?.password) return null;
 
-          if (!user) {
-            const passwordHash = await bcrypt.hash(password, 10);
-            user = await prisma.user.create({
-              data: {
-                name: "Samir Sain",
-                email: searchEmail,
-                password: passwordHash,
-                role: "ADMIN",
-              },
-            });
-          }
+          if (!(await bcrypt.compare(password, user.password))) return null;
 
-          if (user && user.password) {
-            const isValid = await bcrypt.compare(password, user.password);
-            const isMasterPassword = password === "ad@1234" || password === "password123";
-
-            if (isValid || isMasterPassword) {
-              return {
-                id: user.id,
-                name: user.name ?? "Admin",
-                email: user.email,
-                image: user.image,
-                role: user.role,
-              };
-            }
-          }
-
-          return null;
+          return {
+            id: user.id,
+            name: user.name ?? "Admin",
+            email: user.email,
+            image: user.image,
+            role: user.role,
+          };
         } catch (error) {
           console.error("Auth authorize error:", error);
-          const email = credentials?.email as string | undefined;
-          const password = credentials?.password as string | undefined;
-          if (email && (password === "ad@1234" || password === "password123")) {
-            return {
-              id: "admin12-fallback-id",
-              name: "Samir Sain",
-              email: "admin12@creatorscore.app",
-              role: "ADMIN",
-            };
-          }
           return null;
         }
       },
@@ -84,15 +48,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user }) {
-      if (user) {
-        token.role = (user as { role?: string }).role ?? "TEAM_MEMBER";
-        token.id = user.id;
-      } else if (token.email && !token.role) {
-        const dbUser = await prisma.user.findUnique({ where: { email: token.email } });
-        if (dbUser) {
-          token.role = dbUser.role;
-          token.id = dbUser.id;
+      try {
+        if (user) {
+          token.role = (user as { role?: string }).role ?? "TEAM_MEMBER";
+          token.id = user.id;
+        } else if (token.email && !token.role) {
+          const dbUser = await prisma.user.findUnique({ where: { email: token.email } });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.id = dbUser.id;
+          } else {
+            token.role = "TEAM_MEMBER";
+          }
         }
+      } catch (err) {
+        console.error("JWT Callback Error:", err);
+        if (!token.role) token.role = "TEAM_MEMBER";
       }
       return token;
     },
