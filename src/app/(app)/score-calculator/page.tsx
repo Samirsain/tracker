@@ -5,7 +5,21 @@ import { ScoreCalculatorClient } from "@/components/scoring/score-calculator-cli
 export default async function ScoreCalculatorPage() {
   const [config, creators] = await Promise.all([
     getScoringConfig(),
-    prisma.creator.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    prisma.creator.findMany({
+      select: {
+        id: true,
+        name: true,
+        followers: true,
+        avgReelViews: true,
+        avgLikes: true,
+        avgComments: true,
+        engagementRate: true,
+        reelPrice: true,
+        postPrice: true,
+        storyPrice: true,
+      },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   return (

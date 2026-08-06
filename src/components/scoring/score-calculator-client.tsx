@@ -12,7 +12,15 @@ import { ScoreInputSliders } from "@/components/scoring/score-inputs";
 import { ScoreRing } from "@/components/scoring/score-ring";
 import { ScoreBreakdownList } from "@/components/scoring/score-breakdown";
 import { RecommendationBadge } from "@/components/creators/badges";
-import { calculateScore, type ScoreInputs, type ScoringThresholds, type ScoringWeights } from "@/lib/scoring";
+import {
+  calculateScore,
+  suggestScores,
+  type CreatorMetrics,
+  type ScoreInputs,
+  type ScoringThresholds,
+  type ScoringWeights,
+  type Suggestion,
+} from "@/lib/scoring";
 import { submitScore } from "@/actions/scoring";
 
 const DEFAULT_INPUTS: ScoreInputs = {
@@ -23,6 +31,8 @@ const DEFAULT_INPUTS: ScoreInputs = {
   reach: 5,
 };
 
+export type CalculatorCreator = { id: string; name: string } & CreatorMetrics;
+
 export function ScoreCalculatorClient({
   weights,
   thresholds,
@@ -30,17 +40,38 @@ export function ScoreCalculatorClient({
 }: {
   weights: ScoringWeights;
   thresholds: ScoringThresholds;
-  creators: { id: string; name: string }[];
+  creators: CalculatorCreator[];
 }) {
   const router = useRouter();
   const [inputs, setInputs] = React.useState<ScoreInputs>(DEFAULT_INPUTS);
   const [creatorId, setCreatorId] = React.useState<string>("");
   const [isSaving, setIsSaving] = React.useState(false);
+  const [basis, setBasis] = React.useState<Suggestion["basis"]>({});
 
   const breakdown = React.useMemo(() => calculateScore(inputs, weights, thresholds), [inputs, weights, thresholds]);
 
   function updateInput(key: keyof ScoreInputs, value: number) {
     setInputs((prev) => ({ ...prev, [key]: value }));
+    // Once you move a slider yourself, the suggested-value hint is no longer
+    // describing what's on screen.
+    setBasis((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
+  }
+
+  function handleCreatorChange(id: string) {
+    setCreatorId(id);
+    const creator = creators.find((c) => c.id === id);
+    if (!creator) return;
+
+    const { values, basis: why } = suggestScores(creator);
+    setInputs({ ...DEFAULT_INPUTS, ...values });
+    setBasis(why);
+
+    const filled = Object.keys(values).length;
+    toast[filled ? "success" : "info"](
+      filled
+        ? `${filled} categories auto-filled from ${creator.name}'s real data.`
+        : `${creator.name} has no follower/pricing data saved — rate manually.`
+    );
   }
 
   async function handleSave() {
@@ -62,15 +93,41 @@ export function ScoreCalculatorClient({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-      <Card>
-        <CardHeader>
-          <CardTitle>Rate each category</CardTitle>
-          <CardDescription>Score 1-10. Weighted totals update instantly.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ScoreInputSliders values={inputs} onChange={updateInput} weights={weights} />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Start from a creator</CardTitle>
+            <CardDescription>
+              Reach, Trust and Cost Efficiency get filled from their saved metrics. Audience Fit and
+              Content Quality are always yours to judge.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={creatorId} onValueChange={handleCreatorChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a creator (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {creators.map((creator) => (
+                  <SelectItem key={creator.id} value={creator.id}>
+                    {creator.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Rate each category</CardTitle>
+            <CardDescription>Score 1-10. Weighted totals update instantly.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScoreInputSliders values={inputs} onChange={updateInput} weights={weights} basis={basis} />
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="space-y-4">
         <Card>
@@ -94,23 +151,15 @@ export function ScoreCalculatorClient({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Save to a creator</CardTitle>
-            <CardDescription>Optionally attach this score to an existing creator profile.</CardDescription>
+            <CardTitle className="text-base">Save</CardTitle>
+            <CardDescription>
+              {creatorId
+                ? `Attaches this score to ${creators.find((c) => c.id === creatorId)?.name ?? "the selected creator"}.`
+                : "Select a creator above to save this score."}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Select value={creatorId} onValueChange={setCreatorId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a creator" />
-              </SelectTrigger>
-              <SelectContent>
-                {creators.map((creator) => (
-                  <SelectItem key={creator.id} value={creator.id}>
-                    {creator.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+          <CardContent>
+            <Button className="w-full" onClick={handleSave} disabled={isSaving || !creatorId}>
               {isSaving ? <Loader2 className="animate-spin" /> : <Save />}
               Save Score
             </Button>

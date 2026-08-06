@@ -1,5 +1,7 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
+
 import { Slider } from "@/components/ui/slider";
 import { DEFAULT_WEIGHTS, SCORE_CATEGORIES, type ScoreInputs as ScoreInputsType, type ScoringWeights } from "@/lib/scoring";
 
@@ -7,10 +9,13 @@ export function ScoreInputSliders({
   values,
   onChange,
   weights = DEFAULT_WEIGHTS,
+  basis = {},
 }: {
   values: ScoreInputsType;
   onChange: (key: keyof ScoreInputsType, value: number) => void;
   weights?: ScoringWeights;
+  /** Why a value was auto-suggested, keyed by category. */
+  basis?: Partial<Record<keyof ScoreInputsType, string>>;
 }) {
   return (
     <div className="space-y-6">
@@ -35,6 +40,12 @@ export function ScoreInputSliders({
               value={[values[key]]}
               onValueChange={([value]) => onChange(key, value)}
             />
+            {basis[key] && (
+              <p className="flex items-center gap-1.5 text-[11px] text-violet-600 dark:text-violet-400">
+                <Sparkles className="h-3 w-3 shrink-0" />
+                Auto-suggested: {basis[key]}
+              </p>
+            )}
           </div>
         );
       })}

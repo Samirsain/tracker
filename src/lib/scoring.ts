@@ -176,6 +176,33 @@ export function getRecommendation(
   return "Skip";
 }
 
+// ─── Auto-suggested slider values ─────────────────────────────────────────
+//
+// These turn a creator's stored metrics into 1-10 starting points for the
+// three categories that are actually measurable. Audience Fit and Content
+// Quality stay manual — no stored number can honestly stand in for
+// "does this audience match our customer" or "is the editing good".
+//
+// A returned 0 means "not enough data to suggest" — never a score of zero.
+
+/**
+ * Cost per 1000 reached, in whatever currency prices are stored in.
+ * ponytail: linear between these two bounds; tune them to your market rather
+ * than reshaping the curve. Defaults are set for the INR reel pricing in this
+ * workspace (observed CPM ≈ 1-11).
+ */
+export const CPM_BEST = 1;
+export const CPM_WORST = 25;
+
+/** Engagement rate a creator of this size is expected to hit. Scoring against
+ *  a tier benchmark stops mega-accounts being punished for normal decay. */
+function expectedEngagementRate(followers: number): number {
+  if (followers >= 1_000_000) return 1.6;
+  if (followers >= 100_000) return 2.5;
+  if (followers >= 10_000) return 3.5;
+  return 5;
+}
+
 export function autoEngagementRate(params: {
   followers: number;
   avgLikes: number;
@@ -185,14 +212,70 @@ export function autoEngagementRate(params: {
   return ((params.avgLikes + params.avgComments) / params.followers) * 100;
 }
 
-export function autoCostEfficiencyScore(params: {
-  price: number;
-  reach: number;
-}): number {
+export function autoCostEfficiencyScore(params: { price: number; reach: number }): number {
   if (!params.price || !params.reach) return 0;
-  // Cost per 1000 reached — lower is better. Normalize to a 1-10 scale via a soft curve.
   const cpm = (params.price / params.reach) * 1000;
-  if (cpm <= 1) return 10;
-  if (cpm >= 50) return 1;
-  return Math.round(10 - (cpm / 50) * 9);
+  return clampInput(10 - ((cpm - CPM_BEST) / (CPM_WORST - CPM_BEST)) * 9);
+}
+
+/** Audience size on a log scale: ~1k followers → 1, ~10M → 10. */
+export function autoReachScore(params: { followers: number; avgReelViews: number }): number {
+  const audience = Math.max(params.followers, params.avgReelViews);
+  if (audience <= 0) return 0;
+  return clampInput(1 + ((Math.log10(audience) - 3) / 4) * 9);
+}
+
+/** Engagement vs. the benchmark for that follower tier: at benchmark → 5,
+ *  double the benchmark → 10. Used as the Trust & Credibility starting point,
+ *  since a bought/inflated following shows up here first. */
+export function autoTrustScore(params: { engagementRate: number; followers: number }): number {
+  if (params.engagementRate <= 0) return 0;
+  return clampInput((params.engagementRate / expectedEngagementRate(params.followers)) * 5);
+}
+
+export type CreatorMetrics = {
+  followers: number;
+  avgReelViews: number;
+  avgLikes: number;
+  avgComments: number;
+  engagementRate: number;
+  reelPrice: number | null;
+  postPrice: number | null;
+  storyPrice: number | null;
+};
+
+export type Suggestion = {
+  values: Partial<ScoreInputs>;
+  /** Human-readable reason per suggested field, shown next to the sliders. */
+  basis: Partial<Record<keyof ScoreInputs, string>>;
+};
+
+export function suggestScores(metrics: CreatorMetrics): Suggestion {
+  const values: Partial<ScoreInputs> = {};
+  const basis: Suggestion["basis"] = {};
+
+  const reach = autoReachScore(metrics);
+  if (reach) {
+    values.reach = reach;
+    const audience = Math.max(metrics.followers, metrics.avgReelViews);
+    basis.reach = `${audience.toLocaleString("en-IN")} ${metrics.avgReelViews > metrics.followers ? "avg reel views" : "followers"}`;
+  }
+
+  // Prefer the stored rate; fall back to recomputing it from raw counts.
+  const er = metrics.engagementRate > 0 ? metrics.engagementRate : autoEngagementRate(metrics);
+  const trust = autoTrustScore({ engagementRate: er, followers: metrics.followers });
+  if (trust) {
+    values.trustCredibility = trust;
+    basis.trustCredibility = `${er.toFixed(2)}% engagement vs ${expectedEngagementRate(metrics.followers)}% expected at this size`;
+  }
+
+  const price = metrics.reelPrice ?? metrics.postPrice ?? metrics.storyPrice ?? 0;
+  const reachForCpm = metrics.avgReelViews || metrics.followers;
+  const cost = autoCostEfficiencyScore({ price, reach: reachForCpm });
+  if (cost) {
+    values.costEfficiency = cost;
+    basis.costEfficiency = `₹${((price / reachForCpm) * 1000).toFixed(1)} per 1,000 reached`;
+  }
+
+  return { values, basis };
 }
