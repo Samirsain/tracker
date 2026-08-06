@@ -34,9 +34,7 @@ export async function getCreators(filters: CreatorFilters = {}) {
     ];
   }
   if (filters.niche) where.niche = filters.niche as Niche;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (filters.creatorType) (where as Record<string, unknown>).creatorType = filters.creatorType;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (filters.collaborationCategory) (where as Record<string, unknown>).collaborationCategory = filters.collaborationCategory;
   if (filters.platform) where.platform = filters.platform as Platform;
   if (filters.relationshipStage) where.relationshipStage = filters.relationshipStage as RelationshipStage;
