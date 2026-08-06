@@ -1,4 +1,4 @@
-import { Building2, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
 import { getScoringConfig } from "@/actions/scoring";
 import { prisma } from "@/lib/prisma";

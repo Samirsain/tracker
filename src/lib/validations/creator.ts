@@ -86,48 +86,57 @@ export const creatorSchema = z.object({
 export type CreatorInput = z.infer<typeof creatorSchema>;
 export type CreatorFormInput = z.input<typeof creatorSchema>;
 
+// Extended creator type that includes PRD fields not yet in generated Prisma types
+type CreatorWithPrd = Creator & {
+  creatorType?: string;
+  collaborationCategory?: string;
+  monthlyRetainer?: number | null;
+  productInterested?: string | null;
+  couponCode?: string | null;
+  deliverablesCompleted?: string | null;
+};
+
 export function creatorToFormValues(creator: Creator): CreatorInput {
+  const c = creator as CreatorWithPrd;
   return {
-    profileImage: creator.profileImage ?? "",
-    name: creator.name,
-    instagramUsername: creator.instagramUsername ?? "",
-    platform: creator.platform,
-    niche: creator.niche,
-    creatorType: (creator as any).creatorType ?? "LIFESTYLE",
-    collaborationCategory: (creator as any).collaborationCategory ?? "BARTER",
-    location: creator.location ?? "",
-    language: creator.language ?? "",
-    gender: creator.gender ?? "",
-    email: creator.email ?? "",
-    phone: creator.phone ?? "",
-    website: creator.website ?? "",
-    followers: creator.followers,
-    avgReelViews: creator.avgReelViews,
-    avgStoryViews: creator.avgStoryViews,
-    avgLikes: creator.avgLikes,
-    avgComments: creator.avgComments,
-    engagementRate: creator.engagementRate,
-    audienceAgeRange: creator.audienceAgeRange ?? "",
-    audienceGenderSplit: creator.audienceGenderSplit ?? "",
-    audienceCountry: creator.audienceCountry ?? "",
-    audienceCity: creator.audienceCity ?? "",
-    storyPrice: creator.storyPrice ?? undefined,
-    reelPrice: creator.reelPrice ?? undefined,
-    postPrice: creator.postPrice ?? undefined,
-    youtubePrice: creator.youtubePrice ?? undefined,
-    packagePrice: creator.packagePrice ?? undefined,
-    monthlyRetainer: (creator as any).monthlyRetainer ?? undefined,
-    productInterested: (creator as any).productInterested ?? "",
-    couponCode: (creator as any).couponCode ?? "",
-    deliverablesCompleted: (creator as any).deliverablesCompleted ?? "",
-    affiliateAvailable: creator.affiliateAvailable,
-    barterAvailable: creator.barterAvailable,
-    managerNotes: creator.managerNotes ?? "",
-    previousCollaborations: creator.previousCollaborations ?? "",
-    specialRequirements: creator.specialRequirements ?? "",
-    contractAttached: creator.contractAttached,
-    mediaKitAttached: creator.mediaKitAttached,
-    relationshipStage: creator.relationshipStage as any,
-    status: creator.status,
+    profileImage: c.profileImage ?? "",
+    name: c.name,
+    instagramUsername: c.instagramUsername ?? "",
+    platform: c.platform,
+    niche: c.niche,
+    creatorType: (c.creatorType as CreatorInput["creatorType"]) ?? "LIFESTYLE",
+    collaborationCategory: (c.collaborationCategory as CreatorInput["collaborationCategory"]) ?? "BARTER",
+    location: c.location ?? "",
+    language: c.language ?? "",
+    gender: c.gender ?? "",
+    email: c.email ?? "",
+    phone: c.phone ?? "",
+    website: c.website ?? "",
+    followers: c.followers,
+    avgReelViews: c.avgReelViews,
+    avgStoryViews: c.avgStoryViews,
+    avgLikes: c.avgLikes,
+    avgComments: c.avgComments,
+    engagementRate: c.engagementRate,
+    audienceAgeRange: c.audienceAgeRange ?? "",
+    audienceGenderSplit: c.audienceGenderSplit ?? "",
+    audienceCountry: c.audienceCountry ?? "",
+    audienceCity: c.audienceCity ?? "",
+    storyPrice: c.storyPrice ?? undefined,
+    reelPrice: c.reelPrice ?? undefined,
+    postPrice: c.postPrice ?? undefined,
+    youtubePrice: c.youtubePrice ?? undefined,
+    packagePrice: c.packagePrice ?? undefined,
+    monthlyRetainer: c.monthlyRetainer ?? undefined,
+    productInterested: c.productInterested ?? "",
+    couponCode: c.couponCode ?? "",
+    deliverablesCompleted: c.deliverablesCompleted ?? "",
+    affiliateAvailable: c.affiliateAvailable,
+    barterAvailable: c.barterAvailable,
+    managerNotes: c.managerNotes ?? "",
+    previousCollaborations: c.previousCollaborations ?? "",
+    specialRequirements: c.specialRequirements ?? "",
+    relationshipStage: c.relationshipStage as CreatorInput["relationshipStage"],
+    status: c.status,
   };
 }

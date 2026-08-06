@@ -16,7 +16,7 @@ import {
   RELATIONSHIP_STAGE_OPTIONS,
   STATUS_OPTIONS,
 } from "@/lib/constants";
-import { formatCompactNumber, formatCurrency } from "@/lib/utils";
+import { formatCompactNumber } from "@/lib/utils";
 
 export type CreatorExportRow = {
   name: string;

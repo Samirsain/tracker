@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ExportActions } from "@/components/reports/export-actions";
+import { ExportActions, type CreatorExportRow } from "@/components/reports/export-actions";
 
 export default async function ReportsPage() {
   const creators = await prisma.creator.findMany({
@@ -34,7 +34,7 @@ export default async function ReportsPage() {
         </p>
       </div>
 
-      <ExportActions creators={creators as any} />
+      <ExportActions creators={creators as CreatorExportRow[]} />
     </div>
   );
 }

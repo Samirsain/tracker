@@ -201,7 +201,7 @@ function generateSmartFallback(username: string): CreatorEnrichment {
     instagramUsername: `@${clean}`,
     profileImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
     platform: "INSTAGRAM",
-    niche: "ENTERTAINMENT" as any || "OTHER",
+    niche: "OTHER",
     language: "Hindi / English",
     gender: "Male",
     location: "India",
@@ -260,7 +260,7 @@ export async function POST(req: NextRequest) {
         audienceAgeRange: known.audienceAgeRange || "18-24",
         audienceGenderSplit: known.audienceGenderSplit || "70% Male / 30% Female",
         audienceCountry: known.audienceCountry || "India",
-        _meta: known._meta as any,
+        _meta: known._meta as CreatorEnrichment["_meta"],
       };
       return NextResponse.json({ success: true, data: fullData });
     }
@@ -275,7 +275,7 @@ export async function POST(req: NextRequest) {
     const fallbackData = generateSmartFallback(cleanUsername);
     return NextResponse.json({ success: true, data: fallbackData });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Enrich creator route error:", error);
     // Absolute fallback - never fail
     return NextResponse.json({
