@@ -2,7 +2,7 @@ Product Requirements Document (PRD)
 
 Creator CRM & Categorization Framework
 
-Product: Sacred Habit Creator Relationship Management System (CRMS)
+Product: Creator Relationship Management System (CRMS)
 
 Version: 1.0
 
@@ -10,7 +10,7 @@ Version: 1.0
 
 1. Objective
 
-Build a centralized Creator CRM that enables Sacred Habit to:
+Build a centralized Creator CRM that enables the brand to:
 
 * Store all creator information in one place.
 * Score creators objectively.

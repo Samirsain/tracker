@@ -12,9 +12,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function BrandAndNotificationSettings() {
-  const [brandName, setBrandName] = React.useState("Sacred Habit");
+  const [brandName, setBrandName] = React.useState("Your Brand");
   const [category, setCategory] = React.useState("Health, Wellness & Nutrition");
-  const [website, setWebsite] = React.useState("https://sacredhabit.com");
+  const [website, setWebsite] = React.useState("https://yourbrand.com");
   const [currency, setCurrency] = React.useState("INR");
 
   const [emailAlerts, setEmailAlerts] = React.useState(true);
