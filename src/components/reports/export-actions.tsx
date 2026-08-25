@@ -211,7 +211,7 @@ export function ExportActions({ creators }: { creators: CreatorExportRow[] }) {
       <div id="printable-report-area" className="rounded-2xl border bg-card p-6 shadow-sm">
         <div className="mb-6 flex items-center justify-between border-b pb-4">
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Sacred Habit — Creator CRM Report</h2>
+            <h2 className="text-xl font-bold tracking-tight">Creator CRM Report</h2>
             <p className="text-xs text-muted-foreground">
               Generated on {new Date().toLocaleDateString("en-US", { dateStyle: "full" })} • Total Creators: {creators.length}
             </p>

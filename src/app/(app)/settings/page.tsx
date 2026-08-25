@@ -43,7 +43,7 @@ export default async function SettingsPage() {
           <CardTitle className="flex items-center gap-2 text-base">
             <Users className="h-4 w-4" /> Team Members & Access
           </CardTitle>
-          <CardDescription>Active team members with access to Sacred Habit Creator CRM.</CardDescription>
+          <CardDescription>Active team members with access to the Creator CRM.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           {users.map((user) => (

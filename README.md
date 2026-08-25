@@ -1,4 +1,4 @@
-# 🌿 Sacred Habit — Creator Relationship Management (CRM)
+# 🌿 Creator CRM — Creator Relationship Management
 
 > **A Next-Gen, Data-Driven Creator CRM & Influencer Scoring Infrastructure built for Modern D2C Brands.**
 
@@ -12,9 +12,9 @@
 
 ## 🎯 Project Goal & Purpose
 
-**Sacred Habit Creator CRM** is an end-to-end influencer management and automated evaluation system designed to scale creator partnerships from **one-off sponsored posts into high-ROI long-term brand ambassador networks**.
+**Creator CRM** is an end-to-end influencer management and automated evaluation system designed to scale creator partnerships from **one-off sponsored posts into high-ROI long-term brand ambassador networks**.
 
-Instead of relying on manual spreadsheets or subjective guesses, **Sacred Habit CRM** uses a **100-Point Weighted Evaluation Algorithm** and **Multi-Tier AI Profile Enrichment (Instagram Scraping + Google Gemini AI)** to automatically score creators, determine deal pricing, track deliverables, and calculate real-time **ROAS, CPA, and Conversion metrics**.
+Instead of relying on manual spreadsheets or subjective guesses, **Creator CRM** uses a **100-Point Weighted Evaluation Algorithm** and **Multi-Tier AI Profile Enrichment (Instagram Scraping + Google Gemini AI)** to automatically score creators, determine deal pricing, track deliverables, and calculate real-time **ROAS, CPA, and Conversion metrics**.
 
 ---
 
@@ -119,6 +119,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-*Designed & Developed with ❤️ by **Samir Sain** for Sacred Habit.*
+*Designed & Developed with ❤️ by **Samir Sain**.*
 
 </div>
